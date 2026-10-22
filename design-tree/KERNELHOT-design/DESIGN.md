@@ -66,7 +66,7 @@
 
 | 分级 | 定义 | 入选门槛 | 来源 |
 |---|---|---|---|
-| T1 | 官方一手 | 60 | kernel.org 主线版本 (kdist.xml / releases.json)、linux-kernel-announce（Lore 公告列表候选，实施阶段试抓）LKML (Lore)、重点 Lore 子系统列表（linux-kernel, netdev, bpf, linux-mm, linux-fsdevel, linux-block, linux-pm, linux-riscv, linux-arm-kernel, dri-devel, kvm）、git.kernel.org 主线/stable/linux-next 版本/Tag/合并窗口信号 |
+| T1 | 官方一手 | 60 | kernel.org 主线版本 (kdist.xml / releases.json，仅用于版本发布信号，不含 CVE 编号)、linux-cve-announce (https://lore.kernel.org/linux-cve-announce/，Linux 内核 CVE 归档)、linux-kernel-announce (Lore 发布候选与版本公告列表)、LKML (Lore)、重点 Lore 子系统列表（linux-kernel, netdev, bpf, linux-mm, linux-fsdevel, linux-block, linux-pm, linux-riscv, linux-arm-kernel, dri-devel, kvm）、git.kernel.org 主线/stable/linux-next 版本/Tag/合并窗口信号 |
 | T1.5 | 官方账号与准官方 | 65 | KernelNewbies（解读）、LPC、Kernel Summit；维护者博客待白名单 |
 | T2 | 媒体与个人 | 76 | LWN、Phoronix（摘要+原文链接，不抓付费正文） |
 

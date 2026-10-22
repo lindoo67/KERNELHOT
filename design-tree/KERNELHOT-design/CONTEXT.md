@@ -25,7 +25,7 @@
 | upstream | upstream | 指主线内核，相对于发行版内核的 downstream |
 | downstream | downstream | 指发行版内核或其他定制内核 |
 | kernel.org | kernel.org | 内核主要托管站点 |
-| kernel.org CVE | CVE from kernel.org | releases.json 中列出的 CVE 编号；实际公告以 lore.kernel.org/all 的 [CVE] 邮件为准，无独立官方 CVE RSS |
+| kernel.org CVE | CVE from kernel.org | Linux 内核 CVE 编号归档于 https://lore.kernel.org/linux-cve-announce/；releases.json 不包含 CVE 编号 |
 | KernelNewbies | KernelNewbies.org | 内核新手社区，提供内核发布总结 |
 | LPC | Linux Plumbers Conference | Linux 程序员大会 |
 | Kernel Summit | Kernel Summit | 内核开发者峰会 |
