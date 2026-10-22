@@ -4,10 +4,10 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 ## Conventions
 
-- **Create an issue**: `gh issue create --title "..." --body "..."` — this always acts on `lindoo67/KERNELHOT`, never on `KKKKhazix/AIHOT`.
+- **Create an issue**: `gh issue create --title "..." --body "..." --repo lindoo67/KERNELHOT` — this always acts on `lindoo67/KERNELHOT`, never on `KKKKhazix/AIHOT`.
 - **Read an issue**: `gh issue view <number> --json number,title,body,labels,comments --repo lindoo67/KERNELHOT`.
 - **List issues**: `gh issue list --state open --repo lindoo67/KERNELHOT --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
-- **Make an issue a sub-issue of a parent**: `gh issue create --parent <parent> --repo lindoo67/KERNELHOT ...`, or `gh issue edit <parent> --add-sub-issue <child>` afterwards (`gh` 2.94+). Older `gh`: `gh api --method POST repos/lindoo67/KERNELHOT/issues/<parent>/sub_issues -F sub_issue_id=<child-db-id>` (database id, as in **Blocking** below). Without sub-issues, put `Part of #<parent>` at the top of the child body.
+- **Make an issue a sub-issue of a parent**: `gh issue create --parent <parent> --repo lindoo67/KERNELHOT ...`, or `gh issue edit <parent> --repo lindoo67/KERNELHOT --add-sub-issue <child>` afterwards (`gh` 2.94+). Older `gh`: `gh api --method POST repos/lindoo67/KERNELHOT/issues/<parent>/sub_issues -F sub_issue_id=<child-db-id>` (database id, as in **Blocking** below). Without sub-issues, put `Part of #<parent>` at the top of the child body.
 - **Comment on an issue**: `gh issue comment <number> --repo lindoo67/KERNELHOT --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --repo lindoo67/KERNELHOT --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --repo lindoo67/KERNELHOT --comment "..."`
