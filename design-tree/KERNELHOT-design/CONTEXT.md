@@ -17,7 +17,6 @@
 | Lore | lore.kernel.org | LKML 邮件列表的网页归档 |
 | LKML | Linux Kernel Mailing List | 内核开发主要邮件列表 |
 | CVE | Common Vulnerabilities and Exposures | 通用漏洞披露编号 |
-| RCF | Responsible Careers Framework | 内核社区责任框架（人员管理指南） |
 | 子系统 | subsystem | 内核的子树模块，如网络、文件系统、内存管理等 |
 | 驱动 | driver | 硬件驱动程序，如 GPU 驱动、网络驱动等 |
 | 发行版内核 | distro kernel | 发行版（RHEL、Ubuntu 等）基于主线内核打包的内核 |
@@ -26,7 +25,7 @@
 | upstream | upstream | 指主线内核，相对于发行版内核的 downstream |
 | downstream | downstream | 指发行版内核或其他定制内核 |
 | kernel.org | kernel.org | 内核主要托管站点 |
-| kernel.org CVE | CVE announcements | kernel.org 发布的 CVE 公告 |
+| kernel.org CVE | CVE from kernel.org | releases.json 中列出的 CVE 编号；实际公告以 lore.kernel.org/all 的 [CVE] 邮件为准，无独立官方 CVE RSS |
 | KernelNewbies | KernelNewbies.org | 内核新手社区，提供内核发布总结 |
 | LPC | Linux Plumbers Conference | Linux 程序员大会 |
 | Kernel Summit | Kernel Summit | 内核开发者峰会 |
@@ -39,7 +38,6 @@
 | linux-arm-kernel | linux-arm-kernel 邮件列表 | ARM 架构邮件列表 |
 | dri-devel | dri-devel 邮件列表 | 显示渲染内核邮件列表 |
 | kvm | kvm 邮件列表 | 内核虚拟机邮件列表 |
-| w1 | w1 邮件列表 | 单总线子系统邮件列表 |
 
 ---
 

@@ -21,13 +21,13 @@
 | `SITE.keywords` | `["Linux 内核", "内核动态", "内核日报", "内核精选"]` | 写入 `site/site.ts` |
 | `SITE.locale` | `zh-CN` | 写入 `site/site.ts` |
 | `SITE.mcpPrefix` | `kernelhot` | 写入 `site/site.ts` |
-| `SITE.footerNote` | 可设为 `null`（去掉"由 AIHOT 开源框架驱动"署名）或改为框架署名但不提 AIHOT | 待用户上线前确认 |
+| `SITE.footerNote` | 设为 `null`（去掉框架署名） | 写入 `site/site.ts` |
 | `SITE.icp` / `SITE.psb` | `null`（暂不填写） | 写入 `site/site.ts`，有真实号码后再填 |
-| `SITE.github` | （待用户提供仓库地址） | 写入 `site/site.ts` |
+| `SITE.github` | `https://github.com/lindoo67/KERNELHOT` | 写入 `site/site.ts` |
 | `SITE.crawlerName` | `KernelHOTBot/1.0` | 写入 `site/site.ts` |
-| `SITE.contactEmail` | （待用户提供） | 写入 `site/site.ts` |
+| `SITE.contactEmail` | 设为 `null` | 写入 `site/site.ts` |
 
-**运营者决策点**：`footerNote`、`github`、`contactEmail` 需在上线前由用户填写。
+**已决**：`footerNote=null`、`github=https://github.com/lindoo67/KERNELHOT`、`contactEmail=null`，写入 `site/site.ts`。
 
 ---
 
@@ -66,13 +66,13 @@
 
 | 分级 | 定义 | 入选门槛 | 来源 |
 |---|---|---|---|
-| T1 | 官方一手 | 60 | kernel.org version/CVE RSS/JSON、linux-kernel-announce、LKML (Lore)、重点 Lore 子系统列表（linux-kernel, netdev, bpf, linux-mm, linux-fsdevel, linux-block, linux-pm, linux-riscv, linux-arm-kernel, dri-devel, kvm）、git.kernel.org 主线/stable/linux-next 版本/Tag/合并窗口信号 |
+| T1 | 官方一手 | 60 | kernel.org 主线版本 (kdist.xml / releases.json)、linux-kernel-announce（Lore 公告列表候选，实施阶段试抓）LKML (Lore)、重点 Lore 子系统列表（linux-kernel, netdev, bpf, linux-mm, linux-fsdevel, linux-block, linux-pm, linux-riscv, linux-arm-kernel, dri-devel, kvm）、git.kernel.org 主线/stable/linux-next 版本/Tag/合并窗口信号 |
 | T1.5 | 官方账号与准官方 | 65 | KernelNewbies（解读）、LPC、Kernel Summit；维护者博客待白名单 |
 | T2 | 媒体与个人 | 76 | LWN、Phoronix（摘要+原文链接，不抓付费正文） |
 
 **约束**：
 - 所有来源默认 `site_fulltext: false`，`syndicate_fulltext: false`。
-- 不直接抓取整个 LKML，重点抓发布、安全、合并窗口结果与约 8–10 个重点子系统列表。
+- 不直接抓取整个 LKML，重点抓发布、安全、合并窗口结果与 11 个重点子系统列表。
 - 不直接收录所有 Git commit，仅把主线/stable/linux-next 的版本/Tag、合并窗口汇总和重大变更作为信号。
 - LWN 只展示摘要和原文链接，不要求付费账号。
 
@@ -85,7 +85,7 @@
   "id": "rss-kernel-org-versions",
   "name": "kernel.org version announcements",
   "kind": "rss",
-  "config": { "feedUrl": "https://www.kernel.org/feeds/kernel-os-latest.xml" },
+  "config": { "feedUrl": "https://www.kernel.org/feeds/kdist.xml", "releasesJson": "https://www.kernel.org/releases.json" },
   "tier": "T1",
   "participation_mode": "editorial",
   "interval_minutes": 240,
@@ -110,7 +110,7 @@
 3. **正式版 / RC / LTS 内核发布与合并窗口结果**
 4. **重要子系统变更或重大硬件支持**（新架构支持、重大驱动重构）
 5. **可复现的显著性能变化**（有基准数据和对比方法）
-6. **社区治理与架构决策**（维护者变动、RCF 变更、架构决议）
+6. **社区治理与架构决策**（维护者变动、架构决议）
 7. **深度技术解读**（有方法说明、可复现的分析文章）
 
 ### 5.2 CVE 判定规则
@@ -152,7 +152,7 @@ CVE 不因有编号就自动成为热点。需结合以下因素判断：
 | `driver` | 硬件与驱动 | 子系统、硬件与驱动 | 新驱动、硬件支持、驱动重构、GPU/网络驱动 | |
 | `performance` | 性能与可靠性 | 性能与可靠性 | 性能优化、性能回归、基准测试、可靠性改进 | |
 | `distro` | 发行版内核 | 发行版、社区与深度解读 | Red Hat、SUSE、Canonical 等发行版内核工程改动 | |
-| `community` | 社区与治理 | 发行版、社区与深度解读 | RCF 变更、维护者变动、Kernel Summit/LPC | |
+| `community` | 社区与治理 | 发行版、社区与深度解读 | 维护者变动、Kernel Summit/LPC | |
 | `article` | 技术解读 | 发行版、社区与深度解读 | 技术文章、深度解读、架构分析（需有方法说明） | true |
 
 ### 6.2 报告分节顺序
@@ -188,12 +188,12 @@ CVE 不因有编号就自动成为热点。需结合以下因素判断：
 | `amd` | AMD | GPU 驱动、ROCm、scheduler |
 | `nvidia` | NVIDIA | 专有驱动、GPU 计算 |
 | `arm` | Arm | ARM 架构支持、Neoverse |
-| `ibm` | IBM | PowerPC、z/Architecture、存算一体 |
+| `ibm` | IBM | s390/PowerPC、KVM、企业级 Linux 贡献 |
 | `oracle` | Oracle | Oracle Linux、SPARC 内核 |
-| `microsoft` | Microsoft | WSL2、Windows on ARM 内核 |
+| `microsoft` | Microsoft | WSL2、Azure 与上游 Linux 贡献 |
 | `amazon-aws` | Amazon / AWS | AWS 内核优化、Graviton |
-| `meta` | Meta | L4 Kernel、基础设施 |
-| `huawei` | 华为 | 华为内核贡献（鸿蒙/欧拉等） |
+| `meta` | Meta | BPF、sched_ext、基础设施贡献 |
+| `huawei` | 华为 | openEuler、上游 Linux 贡献 |
 | `alibaba` | 阿里巴巴 | 阿里云内核贡献 |
 | `tencent` | 腾讯 | 腾讯内核贡献 |
 | `linux-foundation` | Linux Foundation | 内核治理、LPC、Kernel Summit |
@@ -237,7 +237,7 @@ CVE 不因有编号就自动成为热点。需结合以下因素判断：
 
 ### 7.3 门槛（`industry/selection.ts`）
 
-门槛沿用框架默认值，待样本校准后调整：
+门槛为示例默认值，尚未校准，不声称适用于生产环境。待 100–200 条标注样本校准后调整：
 
 | 分级 | 门槛 |
 |---|---|
@@ -318,7 +318,7 @@ CVE 不因有编号就自动成为热点。需结合以下因素判断：
 - 已确认利用的内核安全漏洞（远程/提权）
 - 正式合并的重要新功能（大规模子系统改动、新架构支持）
 - 有明确数据和可复现方法的性能回归/优化
-- 重大治理决议（维护者变动、RCF 更新、架构决策）
+- 重大治理决议（维护者变动、架构决策）
 
 **必须压制**：
 - 补丁迭代日常通知（v2 → v3）
