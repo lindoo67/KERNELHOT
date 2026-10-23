@@ -22,6 +22,7 @@ const at = new Date(now.getTime() - 3600_000);
 const title = (category: string) => `${T} ${category}`;
 const app = await buildApp();
 const client = new Client({ name: 'category-check', version: '1.0.0' });
+const KERNEL_PUBLIC_CATEGORIES = ["security", "release", "subsystem", "driver", "performance", "distro", "community", "article"];
 
 before(async () => {
   await sql`INSERT INTO sources (id, name, kind, tier) VALUES (${SOURCE}, 'Category fixture', 'rss', 'T1')`;
@@ -60,6 +61,7 @@ test("the website filters by each of its own categories", async () => {
 
 test("HTTP, Agent, MCP and discovery agree on the public categories and returned items", async () => {
   const spec = (await app.inject('/openapi-v1.json')).json();
+  assert.deepEqual([...PUBLIC_API_CATEGORY_KEYS], KERNEL_PUBLIC_CATEGORIES, "the public category contract is KernelHOT's stable URL/API identity");
   for (const path of ['/api/v1/items', '/api/v1/agent/latest', '/api/v1/agent/search']) {
     const parameter = spec.paths[path].get.parameters.find((p: { name?: string }) => p.name === 'category');
     assert.deepEqual(parameter.schema.examples ?? parameter.schema.enum, [...PUBLIC_API_CATEGORY_KEYS], path);

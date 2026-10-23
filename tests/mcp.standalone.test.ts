@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
-import { MCP_TOOLS } from "@aihot/contracts/mcp";
+import { MCP_TOOL_NAMES, MCP_TOOLS } from "@aihot/contracts/mcp";
 import { registerMcp } from "../apps/api/src/routes/mcp.ts";
 
 // The SDK advertises tools.listChanged unless told otherwise, and a 2026-07-28 client that handles list
@@ -21,7 +21,12 @@ test("an MCP client opens no listen stream, and one that asks is refused at once
   });
   try {
     await client.connect(new StreamableHTTPClientTransport(new URL(`${address}/api/mcp`)));
-    assert.equal((await client.listTools()).tools.length, MCP_TOOLS.length);
+    const tools = (await client.listTools()).tools;
+    assert.equal(tools.length, MCP_TOOLS.length);
+    assert.ok(tools.every((tool) => tool.name.startsWith("kernelhot_")), "MCP tool names expose the KernelHOT identity");
+    const latest = tools.find((tool) => tool.name === MCP_TOOL_NAMES.latest)!;
+    assert.deepEqual((latest.inputSchema.properties?.category as { enum: string[] }).enum,
+      ["security", "release", "subsystem", "driver", "performance", "distro", "community", "article"]);
     assert.equal(client.getServerCapabilities()?.tools?.listChanged, false);
     assert.equal(client.autoOpenedSubscription, undefined);
     assert.ok(!methods.includes("subscriptions/listen"), methods.join(","));
