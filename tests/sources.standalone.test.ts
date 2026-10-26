@@ -7,7 +7,9 @@
 // must reach every read of it.
 import "./setup.ts";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import http from "node:http";
+import path from "node:path";
 import { after, test } from "node:test";
 import { config } from "@aihot/backend/config";
 import { extractFromUrl, pageRules } from "@aihot/backend/content/extract";
@@ -19,6 +21,25 @@ import { fetchJsonList } from "@aihot/backend/sources/json-list";
 import { noiseFiltered } from "@aihot/backend/sources/filters";
 
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
+
+test("the industry seed contains only runnable subsystem, driver and performance feeds", () => {
+  const file = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../industry/sources.json"), "utf8")) as {
+    sources: Array<{ id: string; kind: "rss"; config: Record<string, unknown>; tier: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  assert.deepEqual(Object.keys(file), ["$comment", "sources"]);
+  assert.ok(file.sources.length >= 3);
+  for (const item of file.sources) {
+    assert.equal(item.kind, "rss", item.id);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+    assert.equal((item.config._aihot as { initialBackfillLimit?: number })?.initialBackfillLimit, 8, item.id);
+    assert.equal(item.site_fulltext, false, item.id);
+    assert.equal(item.syndicate_fulltext, false, item.id);
+    assert.doesNotMatch(String(item.config.feedUrl), /\/all\/rss$/);
+  }
+  const lwn = file.sources.find((item) => item.id === "rss-lwn");
+  assert.deepEqual(lwn && [lwn.tier, lwn.config.summaryIsBody], ["T2", true]);
+  assert.equal(file.sources.find((item) => item.id === "rss-phoronix")?.tier, "T2");
+});
 
 const pages: Record<string, () => string> = {
   // A news site's feed: a teaser that ends in "Read the full story", next to a post whose feed carries it whole.
