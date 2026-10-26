@@ -1,5 +1,5 @@
 {
-  "$comment": "示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里新建、修改和暂停。字段说明见 docs/customize.md。",
+  "$comment": "KernelHOT 首批已验证的一手信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。全部只发布摘要和原文链接。",
   "sources": [
     {
       "id": "rss-lore-lkml",
@@ -80,6 +80,58 @@
       "config": { "feedUrl": "https://www.phoronix.com/rss.php", "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T2", "participation_mode": "editorial", "interval_minutes": 120,
       "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-kernel-org-kdist",
+      "name": "kernel.org release feed",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.kernel.org/feeds/kdist.xml",
+        "_aihot": { "initialBackfillLimit": 12 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": ["官方", "内核发布"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "json-kernel-org-releases",
+      "name": "kernel.org release metadata",
+      "kind": "json_list",
+      "config": {
+        "url": "https://www.kernel.org/releases.json",
+        "itemsPath": "releases",
+        "titlePaths": ["version"],
+        "summaryPaths": ["moniker"],
+        "publishedAtPath": "released.isodate",
+        "publishedAtUtcOffset": "+00:00",
+        "externalIdPath": "version",
+        "urlTemplate": "{raw:gitweb}",
+        "_aihot": { "initialBackfillLimit": 12 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": ["官方", "内核发布"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-cve-announce",
+      "name": "Linux CVE announcements",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://lore.kernel.org/linux-cve-announce/new.atom",
+        "_aihot": { "initialBackfillLimit": 24 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": ["官方", "安全修复"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     }
   ]
 }

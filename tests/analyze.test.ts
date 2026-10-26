@@ -11,7 +11,8 @@ import { upsertMaterial } from "@aihot/backend/content/materials";
 import { analyzeArticle, buildMaterial, loadAnalyzeInput, normalizeStructure, SCORE_SYSTEM, STRUCTURE_SYSTEM, StructureSchema, tierThreshold, UNDERSTAND_FLOOR } from "@aihot/backend/editorial/analyze";
 import { queueProcessing } from "@aihot/backend/jobs/content";
 import { QUEUES, stopBoss } from "@aihot/backend/jobs/queue";
-import { compactAnswerFirstSummary, enforceIdentity, MAX_BODY_CHARS, parseTranslateOutput, UNDERSTAND_SYSTEM } from "@aihot/backend/editorial/writing";
+import { compactAnswerFirstSummary, enforceIdentity, MAX_BODY_CHARS, parseTranslateOutput, PREFILTER_SYSTEM, UNDERSTAND_SYSTEM } from "@aihot/backend/editorial/writing";
+import { SELECTION } from "@aihot/industry/selection";
 import { READER_WORDING } from "@aihot/industry/wording";
 import { ITEM_TYPES } from "@aihot/industry/taxonomy";
 
@@ -103,6 +104,17 @@ const calls = (marker: string) => requests.filter((r) => r.marker === marker).ma
 const row = async (id: string) =>
   (await sql<{ selected: boolean; relevance: string; score: string | null; title_zh: string; reason_zh: string | null; category: string | null; tags: string[]; subjects: string[]; receipt_ids: string[]; output: Record<string, any> }[]>`
     SELECT selected, relevance, score, title_zh, reason_zh, category, tags, subjects, receipt_ids, output FROM analyses WHERE article_id = ${id} ORDER BY id DESC LIMIT 1`)[0]!;
+
+test("the security and release policy reaches each model boundary without changing uncalibrated thresholds", () => {
+  assert.deepEqual(SELECTION.thresholds, { T1: 60, T1_5: 65, T2: 76 });
+  assert.match(PREFILTER_SYSTEM, /Linux 内核相关性/);
+  assert.match(SCORE_SYSTEM, /\| kernel_release \| 3 \| 2 \| 2 \| 2 \| 1 \|/);
+  assert.match(SCORE_SYSTEM, /\| security_fix \| 3 \| 2 \| 3 \| 2 \| 0 \|/);
+  assert.match(SCORE_SYSTEM, /只有 CVE 编号或模板化公告，不足以成为热点/);
+  assert.match(STRUCTURE_SYSTEM, /受影响不是已利用/);
+  assert.match(UNDERSTAND_SYSTEM, /区分“受影响”“存在利用条件”“已有概念验证”“已在野利用”/);
+  assert.match(UNDERSTAND_SYSTEM, /merge window（合并窗口）/);
+});
 
 test("a selected item: prefilter, two scores, the content understanding and the structure", async () => {
   assert.ok(FLOOR >= 4 && FLOOR < T1 && T1 <= 97, "the cases need the understand floor below the T1 threshold, and a few points either side");

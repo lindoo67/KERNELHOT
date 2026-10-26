@@ -23,6 +23,24 @@
     { "slug": "tencent", "name": "腾讯", "group": "company", "entityId": "tencent", "aliases": ["Tencent Cloud", "腾讯云"], "definition": "腾讯与腾讯云的上游内核贡献。" },
     { "slug": "linux-foundation", "name": "Linux Foundation", "group": "company", "entityId": "linux-foundation", "definition": "Linux Foundation 相关的内核治理与社区活动。" },
     {
+      "slug": "security-fixes",
+      "name": "安全修复",
+      "group": "genre",
+      "tags": [
+        "安全修复"
+      ],
+      "definition": "Linux 内核 CVE、安全修复、缓解措施与有证据支持的漏洞利用动态；仅有 CVE 编号不代表已利用或足以成为热点。"
+    },
+    {
+      "slug": "kernel-releases",
+      "name": "内核发布",
+      "group": "genre",
+      "tags": [
+        "内核发布"
+      ],
+      "definition": "主线、RC、stable/LTS 发布，以及 linux-next 与合并窗口的重要结果。"
+    },
+    {
       "slug": "scheduling", "name": "调度器", "group": "field", "tags": ["调度"],
       "definition": "CFS（完全公平调度器）、EEVDF、实时调度、sched_ext、NUMA 与能耗感知调度。"
     },

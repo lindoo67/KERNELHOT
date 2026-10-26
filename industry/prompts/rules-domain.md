@@ -1,6 +1,10 @@
 【Linux 内核领域翻译规则 — 本平台内容聚焦 Linux 内核，严格遵守】
 
 1. 术语按 Linux 内核语境处理：
+   - mainline = 主线；stable = 稳定版；LTS = 长期支持版；RC = 候选版；linux-next = 预合并树；merge window = 合并窗口。不要把它们统称为“新版”
+   - exploited 只有原文明示实际利用、在野利用或等价证据时才写“已利用”；affected 只写“受影响”
+   - privilege escalation = 权限提升；remote code execution = 远程代码执行；use-after-free = 释放后使用；out-of-bounds = 越界访问
+   - backport = 回移；regression = 回归；subsystem = 子系统；maintainer = 维护者
    - CFS = CFS 进程调度器（Completely Fair Scheduler，中文称“完全公平调度器”）
    - scheduler = 调度器；结合上下文写明进程调度器、I/O 调度器等具体对象
    - driver = 驱动或设备驱动；namespace = 命名空间。不要把二者拼成不存在的固定术语
@@ -38,3 +42,8 @@
    - URL 原样保留
    - 数字与单位原样保留，例如 4K pages / 64-bit / 128GB RAM / 3.5x speedup / 99.9%
    - 金额、比例、区间和版本必须保留原文的阿拉伯数字和单位
+
+5. 安全与发布边界：
+   - CVE 编号、内核版本、补丁版本、Git commit/tag、配置项、函数、路径和邮件列表名原样保留；`CVE-YYYY-NNNN`、`v6.12-rc1`、`6.6.y`、`CONFIG_*` 不改写
+   - CVE 编号、CVSS、概念验证、存在利用条件和已在野利用是不同事实层级，不得逐级补强
+   - 数字、版本范围、受影响版本、修复版本与支持状态必须可在原文找到，不把单个分支的状态外推为全部上游或下游版本
