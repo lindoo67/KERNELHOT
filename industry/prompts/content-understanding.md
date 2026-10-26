@@ -8,19 +8,20 @@
 
 ## 内容类型
 
-`itemType` 必须七选一：
+`itemType` 必须八选一：
 
-- `model_release`：新模型或大版本更新
-- `product_launch`：新产品、工具或重大功能更新
-- `tool_or_prompt`：可直接复用的方法、Prompt、Skill 或技巧
-- `research_paper`：论文、研究或技术报告
-- `industry_event`：融资、收购、监管、诉讼、商业动作或人事
-- `opinion_analysis`：观点、行业判断、复盘或长访谈
-- `tutorial_explainer`：教程、科普、解读或评测
+- `kernel_release`：主线、RC、stable/LTS、linux-next 或合并窗口结果
+- `security_fix`：内核漏洞、CVE、利用、缓解与修复
+- `subsystem_change`：调度、内存、文件系统、网络、BPF、虚拟化等子系统变化
+- `driver_update`：驱动、新硬件或架构支持
+- `performance`：有测量方法的性能、功耗、可靠性或回归
+- `distro_kernel`：发行版内核分支、补丁、配置、支持周期及与上游的差异
+- `community_governance`：维护者变动、maintainer sign-off、开发流程、LPC 议程或 Kernel Summit 的治理决定
+- `technical_article`：有明确方法、证据或复现路径的 Linux 内核深度解读
 
-优先级：发了模型选 model_release；发了工具选 product_launch；发了 Prompt 或方法选 tool_or_prompt；论文优先 research_paper；评测选 tutorial_explainer。原文把发布写成过去的事、本条在讲用法或做演示时，不算本次发布，选 tutorial_explainer。
+优先判断当前材料的核心动作，而不是来源身份。发行版发布的上游补丁与分支策略选 `distro_kernel`；维护者职责、签名规则和会议治理决定选 `community_governance`；解释既有机制或复现分析过程的文章选 `technical_article`。文章回顾一次旧发布时，不把这篇文章写成再次发布。
 
-输出前检查 `itemType` 与第一个分类标签是否自洽：`model_release` 对应“模型发布”，`product_launch` 对应“产品更新”，`research_paper` 对应“论文/研究”，`industry_event` 对应“行业动态”或“政策/监管”，`opinion_analysis` 对应“大佬观点”或“现象/趋势”，`tutorial_explainer` 对应“教程/实践”或“评测/基准”。如果二者冲突，按当前材料的核心事件修正后再输出。
+输出前检查 `itemType` 与第一个分类标签自洽：`kernel_release` 对应“内核发布”，`security_fix` 对应“安全修复”，`subsystem_change` 对应“子系统变更”，`driver_update` 对应“驱动更新”，`performance` 对应“性能优化”或“可靠性”，`distro_kernel` 对应“发行版内核”，`community_governance` 对应“社区治理”，`technical_article` 对应“技术解读”。如果冲突，按当前材料的核心事件修正。
 
 ## 作者角色
 
@@ -32,14 +33,14 @@
 
 ## 标签
 
-`tags` 输出 1–6 个字符串。第一个必须从以下分类标签中选一个：模型发布、产品更新、开源/仓库、论文/研究、教程/实践、大佬观点、评测/基准、安全/对齐、现象/趋势、行业动态、政策/监管、非AI/通用工具、其他。
+`tags` 输出 1–6 个字符串。第一个必须从以下分类标签中选一个：安全修复、内核发布、子系统变更、驱动更新、性能优化、可靠性、发行版内核、社区治理、技术解读、其他。
 
 其后可选 0–5 个适用标签，并且只能来自以下两个白名单：
 
-- 主题：Agent、编码、推理、多模态、语音、视频、图像生成、RAG、端侧、数据/训练、搜索、部署/工程、开源生态、具身智能、MCP/工具调用
-- 实体：OpenAI、Anthropic、DeepSeek、DeepMind、Google、Meta、Microsoft、xAI、Hugging Face、GitHub、arXiv
+- 主题：调度、内存管理、文件系统、网络、BPF、虚拟化、容器、实时内核、电源管理、可观测性、Rust for Linux、x86、Arm、RISC-V、GPU、存储
+- 实体：Red Hat、SUSE、Canonical、Google、Intel、AMD、NVIDIA、Arm、IBM、Oracle、Microsoft、AWS、Meta、华为、阿里巴巴、腾讯、Linux Foundation
 
-正文中即使明确出现了 NVIDIA、Apple、阿里等其他实体，也不要把它们放进 `tags`。不要创造白名单之外的标签。没有适用的主题或实体时，只返回第一个分类标签；例如学校限制 AI 使用的监管新闻，不需要强行归到“编码”或“推理”。
+不要创造白名单之外的标签。没有适用的主题或实体时，只返回第一个分类标签；会议名、发行版名和公司名不能替代内容形态。
 
 ## 候选阅读价值
 
@@ -51,12 +52,12 @@
 
 ## 中文标题和摘要
 
-`titleZh` 必须是自洽的中文标题，包含事件主体以及动作或结果。保留必要的模型名、产品名、版本号、机构名和关键数字，不写“最新动态”“引发关注”等空话。原标题已经是中文时也要保证脱离来源名后仍能独立理解。
+`titleZh` 必须是自洽的中文标题，包含事件主体以及动作或结果。保留必要的内核版本、发行版内核分支、子系统、补丁或会议名称和关键数字，不写“最新动态”“引发关注”等空话。原标题已经是中文时也要保证脱离来源名后仍能独立理解。
 
-`summaryZh` 必须忠实使用当前材料。短 X 推文完整翻译作者自己的主推文；长推文或文章先写核心事实，再写一层关键细节或影响。保留关键数字、版本、机构、模型和 URL；引用内容只作上下文，不冒充主推作者自己的话。
+`summaryZh` 必须忠实使用当前材料。短帖完整翻译作者自己的主帖；长帖或文章先写核心事实，再写一层关键细节或影响。发行版内核分支要说清上游基线、补丁或支持范围；维护者变动要区分提名、maintainer sign-off 与已经生效；LPC 议程或 Kernel Summit 提案不能写成已经达成的决定。保留关键数字、版本、机构、提交和 URL；引用内容只作上下文，不冒充作者自己的话。
 
 图片只能补充清晰可见、与正文直接相关的事实。忽略头像、品牌图、装饰图、模糊内容和与正文重复的信息。不得仅凭图片猜测人物身份、地点、时间、因果、性能或产品能力；图文冲突时不得擅自裁决。
 
 只返回合法 JSON，不要 Markdown，不要解释。顶层必须且只能包含以下六个字段：
 
-{"itemType":"product_launch","authorRole":"principal","tags":["产品更新","Agent"],"editorialJudgment":"原文给出了能力变化和开放入口，读者可以据此判断它会怎样改变现有工作流。","titleZh":"某产品发布智能体功能","summaryZh":"某产品发布新的智能体功能，给出了开放入口和主要能力变化。"}
+{"itemType":"distro_kernel","authorRole":"principal","tags":["发行版内核","Red Hat"],"editorialJudgment":"原文交代了发行版分支与上游基线的差异，便于评估补丁和支持范围。","titleZh":"Red Hat 调整发行版内核分支的补丁策略","summaryZh":"Red Hat 调整某发行版内核分支的补丁策略，并说明上游基线与支持范围。"}

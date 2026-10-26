@@ -3,6 +3,7 @@
 // the page does not show, and a list it shows keeps its order and links to event pages only.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { TOPICS } from "@aihot/backend/publication/topics";
 import { siteUrl, topicLd } from "../apps/web/app/lib/seo.ts";
 
 const topic = {
@@ -34,4 +35,17 @@ test("a list the page shows keeps its ordered entry names and public story links
     { "@type": "ListItem", position: 1, name: "正式发布", url: `${siteUrl()}/story/model-release` },
     { "@type": "ListItem", position: 2, name: "历史节点" },
   ]);
+});
+
+test("distro, community and technical article genres are available to readers", () => {
+  const expected = [
+    ["distro-kernel", "发行版内核"],
+    ["community-governance", "社区治理"],
+    ["technical-articles", "技术解读"],
+  ];
+  assert.deepEqual(
+    TOPICS.filter((topic) => expected.some(([slug]) => slug === topic.slug))
+      .map((topic) => [topic.slug, topic.group, topic.tags]),
+    expected.map(([slug, tag]) => [slug, "genre", [tag]]),
+  );
 });

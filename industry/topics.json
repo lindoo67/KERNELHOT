@@ -12,8 +12,8 @@
     },
     {
       "key": "genre",
-      "name": "内容类型",
-      "blurb": "按体裁浏览：论文、教程、观点、政策……"
+      "name": "内容形态",
+      "blurb": "按内容形态浏览内核发布、安全修复、发行版、社区治理与技术解读"
     }
   ],
   "topics": [
@@ -253,85 +253,77 @@
       "definition": "让 AI 连上外部软件和数据：MCP 协议、function calling 工具调用与各类工具集成。"
     },
     {
-      "slug": "model-releases",
-      "name": "模型发布",
+      "slug": "kernel-releases",
+      "name": "内核发布",
       "group": "genre",
       "tags": [
-        "模型发布"
+        "内核发布"
       ],
-      "definition": "各家新模型的发布、开源与迭代：旗舰更新、开源权重放出、能力与价格变化。"
+      "definition": "主线内核、RC、stable 与 LTS 版本发布，以及合并窗口结果。"
     },
     {
-      "slug": "product-updates",
-      "name": "产品更新",
+      "slug": "security-fixes",
+      "name": "安全修复",
       "group": "genre",
       "tags": [
-        "产品更新"
+        "安全修复"
       ],
-      "definition": "AI 产品与应用的功能上新、改版与商业化——谁家的产品变强了、变贵了、能用了。"
+      "definition": "内核漏洞、CVE、利用影响、缓解措施与修复进展。"
     },
     {
-      "slug": "papers",
-      "name": "论文研究",
+      "slug": "subsystem-changes",
+      "name": "子系统变更",
       "group": "genre",
       "tags": [
-        "论文/研究"
+        "子系统变更"
       ],
-      "definition": "值得读的 AI 论文与研究成果：架构创新、训练方法、能力测量与理论进展。"
+      "definition": "调度、内存、文件系统、网络、BPF 与虚拟化等子系统的重要变化。"
     },
     {
-      "slug": "benchmarks",
-      "name": "评测基准",
+      "slug": "driver-updates",
+      "name": "驱动更新",
       "group": "genre",
       "tags": [
-        "评测/基准"
+        "驱动更新"
       ],
-      "definition": "模型到底谁更强：Benchmark 评测成绩、评测方法的争议与排行榜变化。"
+      "definition": "设备驱动、新硬件支持、架构适配与固件接口变化。"
     },
     {
-      "slug": "tutorials",
-      "name": "教程实践",
+      "slug": "performance-reliability",
+      "name": "性能与可靠性",
       "group": "genre",
       "tags": [
-        "教程/实践"
+        "性能优化",
+        "可靠性"
       ],
-      "definition": "拿来就能用的实操内容：提示词技巧、工作流搭建、工具用法与踩坑经验。"
+      "definition": "有基准方法支持的性能变化，以及稳定性、功耗和重大回归分析。"
     },
     {
-      "slug": "opinions",
-      "name": "大佬观点",
+      "slug": "distro-kernel",
+      "name": "发行版内核",
       "group": "genre",
       "tags": [
-        "大佬观点"
+        "发行版内核"
       ],
-      "definition": "行业关键人物在想什么：创始人访谈、研究者论战与投资人判断。"
+      "definition": "RHEL、SLES、Ubuntu 等发行版内核分支的补丁、配置、支持周期与上游协作。"
     },
     {
-      "slug": "trends",
-      "name": "现象与趋势",
+      "slug": "community-governance",
+      "name": "社区治理",
       "group": "genre",
       "tags": [
-        "现象/趋势"
+        "社区治理"
       ],
-      "definition": "AI 正在改变什么：大家怎么用 AI、新能力的出现、对社会与市场格局的影响。"
+      "definition": "维护者变动、maintainer sign-off、开发流程，以及 LPC 与 Kernel Summit 的治理议程。"
     },
     {
-      "slug": "industry",
-      "name": "行业动态",
+      "slug": "technical-articles",
+      "name": "技术解读",
       "group": "genre",
       "tags": [
-        "行业动态"
+        "技术解读"
       ],
-      "definition": "AI 圈的商业大事：融资并购、人事变动、合作与竞争、政策与市场变化。"
-    },
-    {
-      "slug": "policy",
-      "name": "政策监管",
-      "group": "genre",
-      "tags": [
-        "政策/监管"
-      ],
-      "definition": "AI 相关的政策法规与政府监管：立法进展、出口管制与全球治理。"
+      "definition": "有明确方法、证据或复现路径的 Linux 内核深度分析、架构解读与技术文章。"
     }
   ]
 }
