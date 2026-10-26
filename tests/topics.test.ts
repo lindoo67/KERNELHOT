@@ -32,6 +32,15 @@ test("the topic directory exposes the subsystem, driver and performance fields f
   assert.ok(fields.every((topic) => topic.entityId === null));
 });
 
+test("the topic directory keeps every distro, community and technical article genre", () => {
+  const genres = TOPICS.filter((topic) => topic.group === "genre");
+  assert.deepEqual(genres.map((topic) => topic.slug), [
+    "security-fixes", "kernel-releases", "subsystem-changes", "driver-updates", "performance-reliability",
+    "distro-kernel", "community-governance", "technical-articles",
+  ]);
+  assert.ok(genres.every((topic) => topic.entityId === null));
+});
+
 const T = tag();
 const OFFICIAL = `test-topics-official-${T}`;
 const MEDIA = `test-topics-media-${T}`;

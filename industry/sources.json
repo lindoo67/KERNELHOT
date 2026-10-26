@@ -71,13 +71,13 @@
     },
     {
       "id": "rss-lwn", "name": "LWN.net", "kind": "rss",
-      "config": { "feedUrl": "https://lwn.net/headlines/rss", "summaryIsBody": true, "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lwn.net/headlines/rss", "summaryIsBody": true, "fetchPublicContent": false, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T2", "participation_mode": "editorial", "interval_minutes": 120,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-phoronix", "name": "Phoronix", "kind": "rss",
-      "config": { "feedUrl": "https://www.phoronix.com/rss.php", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://www.phoronix.com/rss.php", "fetchPublicContent": false, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T2", "participation_mode": "editorial", "interval_minutes": 120,
       "site_fulltext": false, "syndicate_fulltext": false
     },
@@ -115,6 +115,68 @@
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": ["官方", "内核发布"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-kernelnewbies-releases",
+      "name": "KernelNewbies · Linux release changes",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://kernelnewbies.org/RecentChanges?action=rss_rc&unique=1&page=%5ELinux_%5B0-9%5D",
+        "itemUrlPrefixRewrite": { "from": "http://kernelnewbies.org/", "to": "https://kernelnewbies.org/" },
+        "fetchPublicContent": true,
+        "_aihot": { "initialBackfillLimit": 15 }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": ["准官方", "技术解读"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-linux-plumbers",
+      "name": "Linux Plumbers Conference",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://lpc.events/blog/current/index.php/feed/",
+        "publisherRole": "organization",
+        "publisherUrlPrefixes": ["https://lpc.events/blog/current/"],
+        "fetchPublicContent": true,
+        "_aihot": { "initialBackfillLimit": 10 }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": "linux-foundation",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": ["准官方", "社区治理"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-kernel-summit-2026",
+      "name": "Kernel Summit 2026 · LPC agenda",
+      "kind": "web_list",
+      "config": {
+        "url": "https://lpc.events/event/20/sessions/248/",
+        "parseMode": "html",
+        "itemSelector": ".contribution-row",
+        "linkSelector": ".contrib-title a",
+        "titleSelector": ".contrib-title a",
+        "publishedAtSelector": ".contrib-time",
+        "publishedAtUtcOffset": "+02:00",
+        "allowUrlPrefixes": ["https://lpc.events/event/20/contributions/"],
+        "publisherRole": "organization",
+        "publisherUrlPrefixes": ["https://lpc.events/event/20/"],
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": "linux-foundation",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["准官方", "社区治理"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },

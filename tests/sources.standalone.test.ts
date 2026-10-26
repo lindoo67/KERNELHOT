@@ -14,11 +14,14 @@ import { after, test } from "node:test";
 import { config } from "@aihot/backend/config";
 import { extractFromUrl, pageRules } from "@aihot/backend/content/extract";
 import { sanitizeBody, trimTrailingChrome } from "@aihot/backend/content/sanitize";
+import { SCORE_SYSTEM } from "@aihot/backend/editorial/analyze";
+import { PREFILTER_SYSTEM, UNDERSTAND_SYSTEM } from "@aihot/backend/editorial/writing";
 import { unsupportedConfig } from "@aihot/backend/sources/config-keys";
 import { fetchDetail, fetchWebList, fromHtml, fromMarkdown } from "@aihot/backend/sources/web-list";
 import { fetchRss } from "@aihot/backend/sources/rss";
 import { fetchJsonList } from "@aihot/backend/sources/json-list";
 import { noiseFiltered } from "@aihot/backend/sources/filters";
+import { SELECTION } from "@aihot/industry/selection";
 
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -42,6 +45,49 @@ test("the industry seed keeps the runnable subsystem, driver and performance fee
   const lwn = sources.find((item) => item.id === "rss-lwn");
   assert.deepEqual(lwn && [lwn.tier, lwn.config.summaryIsBody], ["T2", true]);
   assert.equal(sources.find((item) => item.id === "rss-phoronix")?.tier, "T2");
+});
+
+test("distro, community and technical article sources keep their editorial boundaries", () => {
+  const file = JSON.parse(readFileSync(new URL("../industry/sources.json", import.meta.url), "utf8")) as {
+    sources: Array<{ id: string; kind: string; tier: string; participation_mode: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  assert.equal(file.sources.length, 19);
+  assert.equal(new Set(file.sources.map((item) => item.id)).size, 19);
+  assert.ok(file.sources.every((item) => item.participation_mode === "editorial"));
+  assert.ok(file.sources.every((item) => item.site_fulltext === false && item.syndicate_fulltext === false));
+  const byId = new Map(file.sources.map((item) => [item.id, item]));
+  const expected = [
+    ["rss-kernelnewbies-releases", "T1_5"],
+    ["rss-linux-plumbers", "T1_5"],
+    ["web-kernel-summit-2026", "T1_5"],
+    ["rss-lwn", "T2"],
+    ["rss-phoronix", "T2"],
+  ] as const;
+  for (const [id, tier] of expected) {
+    const item = byId.get(id);
+    assert.ok(item, id);
+    assert.equal(item.tier, tier, id);
+    assert.equal(item.site_fulltext, false, id);
+    assert.equal(item.syndicate_fulltext, false, id);
+    assert.deepEqual(unsupportedConfig(item.kind as never, item.config), [], id);
+  }
+  assert.equal(byId.get("rss-lwn")!.config.feedUrl, "https://lwn.net/headlines/rss");
+  assert.equal(byId.get("rss-lwn")!.config.summaryIsBody, true);
+  assert.equal(byId.get("rss-lwn")!.config.fetchPublicContent, false, "LWN never requests paid article text");
+  assert.equal(byId.get("rss-phoronix")!.config.fetchPublicContent, false, "Phoronix stays feed-only");
+
+  assert.match(PREFILTER_SYSTEM, /泛 Linux[^。]*教程[^。]*BLOCK|BLOCK[^。]*泛 Linux[^。]*教程/);
+  assert.match(PREFILTER_SYSTEM, /社区八卦/);
+  assert.match(SCORE_SYSTEM, /distro_kernel\s*\|\s*2\s*\|\s*1\s*\|\s*2\s*\|\s*3\s*\|\s*2/);
+  assert.match(SCORE_SYSTEM, /community_governance\s*\|\s*2\s*\|\s*2\s*\|\s*2\s*\|\s*3\s*\|\s*1/);
+  assert.match(SCORE_SYSTEM, /technical_article\s*\|\s*1\s*\|\s*1\s*\|\s*1\s*\|\s*3\s*\|\s*4/);
+  assert.deepEqual(SELECTION.thresholds, { T1: 60, T1_5: 65, T2: 76 }, "thresholds stay pending sample calibration");
+  assert.match(UNDERSTAND_SYSTEM, /发行版内核分支/);
+  assert.match(UNDERSTAND_SYSTEM, /maintainer sign-off/);
+  assert.match(UNDERSTAND_SYSTEM, /LPC 议程/);
+  const articlePrompt = readFileSync(new URL("../industry/prompts/summarize-article.md", import.meta.url), "utf8");
+  assert.match(articlePrompt, /发行版补丁不得写成已进入主线/);
+  assert.match(articlePrompt, /会议议程、提案和讨论不得写成社区已经达成决定/);
 });
 
 const pages: Record<string, () => string> = {

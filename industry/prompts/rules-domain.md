@@ -5,6 +5,7 @@
    - exploited 只有原文明示实际利用、在野利用或等价证据时才写“已利用”；affected 只写“受影响”
    - privilege escalation = 权限提升；remote code execution = 远程代码执行；use-after-free = 释放后使用；out-of-bounds = 越界访问
    - backport = 回移；regression = 回归；subsystem = 子系统；maintainer = 维护者
+   - distro kernel = 发行版内核；upstream = 上游；downstream = 下游；maintainer sign-off = 维护者签名确认
    - CFS = CFS 进程调度器（Completely Fair Scheduler，中文称“完全公平调度器”）
    - scheduler = 调度器；结合上下文写明进程调度器、I/O 调度器等具体对象
    - driver = 驱动或设备驱动；namespace = 命名空间。不要把二者拼成不存在的固定术语
@@ -28,6 +29,7 @@
    - 发行版：RHEL / SLES / Ubuntu / Fedora；确指其内核时可写 RHEL 内核、Ubuntu 内核
    - 技术缩写：CVE / PCI / PCIe / USB / ACPI / UEFI / BIOS
    - 内核机制和工具：BPF / eBPF / XDP / kprobe / kretprobe / uprobe / fprobe / perf / BPF map / cgroup v2
+   - 会议与资源：KernelNewbies / LPC / Kernel Summit
    - 通用技术：API / SDK / CLI / IDE / SaaS / CDN / SSO / OAuth / JWT / WebSocket / SSE / gRPC
    - Git 术语：commit / patch / branch / PR；upstream 按语境译“上游”，mainline 译“主线”或“主线内核”
 
@@ -47,3 +49,6 @@
    - CVE 编号、内核版本、补丁版本、Git commit/tag、配置项、函数、路径和邮件列表名原样保留；`CVE-YYYY-NNNN`、`v6.12-rc1`、`6.6.y`、`CONFIG_*` 不改写
    - CVE 编号、CVSS、概念验证、存在利用条件和已在野利用是不同事实层级，不得逐级补强
    - 数字、版本范围、受影响版本、修复版本与支持状态必须可在原文找到，不把单个分支的状态外推为全部上游或下游版本
+   - 发行版内核必须区分上游基线、下游补丁与支持周期，不把 downstream 补丁写成已进入主线
+   - 维护者提名、Acked-by、Reviewed-by、Signed-off-by、maintainer sign-off 与 MAINTAINERS 文件中的职责变更含义不同，按原文阶段写，不相互替换
+   - LPC 议程、Kernel Summit 提案、RFC 和讨论不等于正式决定；技术文章的结论必须有原文方法、证据或复现路径支持
