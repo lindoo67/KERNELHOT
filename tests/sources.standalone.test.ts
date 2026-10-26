@@ -23,6 +23,27 @@ import { noiseFiltered } from "@aihot/backend/sources/filters";
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
 const ROOT = path.resolve(import.meta.dirname, "..");
 
+test("the industry seed keeps the runnable subsystem, driver and performance feeds", () => {
+  const file = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../industry/sources.json"), "utf8")) as {
+    sources: Array<{ id: string; kind: "rss" | "json_list"; config: Record<string, unknown>; tier: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  assert.deepEqual(Object.keys(file), ["$comment", "sources"]);
+  const sliceIds = new Set(["rss-lore-lkml", "rss-lore-netdev", "rss-lore-bpf", "rss-lore-linux-mm", "rss-lore-linux-fsdevel", "rss-lore-linux-block", "rss-lore-linux-pm", "rss-lore-linux-riscv", "rss-lore-linux-arm-kernel", "rss-lore-dri-devel", "rss-lore-kvm", "rss-lwn", "rss-phoronix"]);
+  const sources = file.sources.filter((item) => sliceIds.has(item.id));
+  assert.equal(sources.length, 13);
+  for (const item of sources) {
+    assert.equal(item.kind, "rss", item.id);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+    assert.equal((item.config._aihot as { initialBackfillLimit?: number })?.initialBackfillLimit, 8, item.id);
+    assert.equal(item.site_fulltext, false, item.id);
+    assert.equal(item.syndicate_fulltext, false, item.id);
+    assert.doesNotMatch(String(item.config.feedUrl), /\/all\/rss$/);
+  }
+  const lwn = sources.find((item) => item.id === "rss-lwn");
+  assert.deepEqual(lwn && [lwn.tier, lwn.config.summaryIsBody], ["T2", true]);
+  assert.equal(sources.find((item) => item.id === "rss-phoronix")?.tier, "T2");
+});
+
 const pages: Record<string, () => string> = {
   // A news site's feed: a teaser that ends in "Read the full story", next to a post whose feed carries it whole.
   "/teaser.xml": () =>
@@ -286,17 +307,20 @@ test("a source's language is an Accept-Language value, refused by kinds that rea
   for (const kind of ["x_search", "mp_account", "external"] as const) assert.deepEqual(unsupportedConfig(kind, { acceptLanguage: "en" }), ["acceptLanguage"], kind);
 });
 
-test("the security and release slice seeds only its verified official endpoints", () => {
+test("the security and release slice keeps its verified official endpoints", () => {
   const pack = JSON.parse(readFileSync(path.join(ROOT, "industry/sources.json"), "utf8")) as {
     sources: Array<{ id: string; kind: "rss" | "json_list"; config: Record<string, unknown>; tier: string; participation_mode: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
   };
-  const endpoints = pack.sources.map((item) => item.kind === "rss" ? item.config.feedUrl : item.config.url);
+  const sliceIds = new Set(["rss-kernel-org-kdist", "json-kernel-org-releases", "rss-lore-linux-cve-announce"]);
+  const sources = pack.sources.filter((item) => sliceIds.has(item.id));
+  const endpoints = sources.map((item) => item.kind === "rss" ? item.config.feedUrl : item.config.url);
   assert.deepEqual(endpoints, [
     "https://www.kernel.org/feeds/kdist.xml",
     "https://www.kernel.org/releases.json",
     "https://lore.kernel.org/linux-cve-announce/new.atom",
   ]);
-  for (const item of pack.sources) {
+  assert.equal(sources.length, 3);
+  for (const item of sources) {
     assert.equal(item.tier, "T1");
     assert.equal(item.participation_mode, "editorial");
     assert.equal(item.site_fulltext, false);
