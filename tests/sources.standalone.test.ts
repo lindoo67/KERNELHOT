@@ -9,6 +9,7 @@ import "./setup.ts";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import http from "node:http";
+import path from "node:path";
 import { after, test } from "node:test";
 import { config } from "@aihot/backend/config";
 import { extractFromUrl, pageRules } from "@aihot/backend/content/extract";
@@ -23,17 +24,43 @@ import { noiseFiltered } from "@aihot/backend/sources/filters";
 import { SELECTION } from "@aihot/industry/selection";
 
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
+const ROOT = path.resolve(import.meta.dirname, "..");
+
+test("the industry seed keeps the runnable subsystem, driver and performance feeds", () => {
+  const file = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../industry/sources.json"), "utf8")) as {
+    sources: Array<{ id: string; kind: "rss" | "json_list"; config: Record<string, unknown>; tier: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  assert.deepEqual(Object.keys(file), ["$comment", "sources"]);
+  const sliceIds = new Set(["rss-lore-lkml", "rss-lore-netdev", "rss-lore-bpf", "rss-lore-linux-mm", "rss-lore-linux-fsdevel", "rss-lore-linux-block", "rss-lore-linux-pm", "rss-lore-linux-riscv", "rss-lore-linux-arm-kernel", "rss-lore-dri-devel", "rss-lore-kvm", "rss-lwn", "rss-phoronix"]);
+  const sources = file.sources.filter((item) => sliceIds.has(item.id));
+  assert.equal(sources.length, 13);
+  for (const item of sources) {
+    assert.equal(item.kind, "rss", item.id);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+    assert.equal((item.config._aihot as { initialBackfillLimit?: number })?.initialBackfillLimit, 8, item.id);
+    assert.equal(item.site_fulltext, false, item.id);
+    assert.equal(item.syndicate_fulltext, false, item.id);
+    assert.doesNotMatch(String(item.config.feedUrl), /\/all\/rss$/);
+  }
+  const lwn = sources.find((item) => item.id === "rss-lwn");
+  assert.deepEqual(lwn && [lwn.tier, lwn.config.summaryIsBody], ["T2", true]);
+  assert.equal(sources.find((item) => item.id === "rss-phoronix")?.tier, "T2");
+});
 
 test("distro, community and technical article sources keep their editorial boundaries", () => {
   const file = JSON.parse(readFileSync(new URL("../industry/sources.json", import.meta.url), "utf8")) as {
-    sources: Array<{ id: string; kind: string; tier: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+    sources: Array<{ id: string; kind: string; tier: string; participation_mode: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
   };
+  assert.equal(file.sources.length, 19);
+  assert.equal(new Set(file.sources.map((item) => item.id)).size, 19);
+  assert.ok(file.sources.every((item) => item.participation_mode === "editorial"));
+  assert.ok(file.sources.every((item) => item.site_fulltext === false && item.syndicate_fulltext === false));
   const byId = new Map(file.sources.map((item) => [item.id, item]));
   const expected = [
     ["rss-kernelnewbies-releases", "T1_5"],
     ["rss-linux-plumbers", "T1_5"],
     ["web-kernel-summit-2026", "T1_5"],
-    ["rss-lwn-headlines", "T2"],
+    ["rss-lwn", "T2"],
     ["rss-phoronix", "T2"],
   ] as const;
   for (const [id, tier] of expected) {
@@ -44,7 +71,10 @@ test("distro, community and technical article sources keep their editorial bound
     assert.equal(item.syndicate_fulltext, false, id);
     assert.deepEqual(unsupportedConfig(item.kind as never, item.config), [], id);
   }
-  assert.equal(byId.get("rss-lwn-headlines")!.config.fetchPublicContent, false, "LWN never requests paid article text");
+  assert.equal(byId.get("rss-lwn")!.config.feedUrl, "https://lwn.net/headlines/rss");
+  assert.equal(byId.get("rss-lwn")!.config.summaryIsBody, true);
+  assert.equal(byId.get("rss-lwn")!.config.fetchPublicContent, false, "LWN never requests paid article text");
+  assert.equal(byId.get("rss-phoronix")!.config.fetchPublicContent, false, "Phoronix stays feed-only");
 
   assert.match(PREFILTER_SYSTEM, /泛 Linux[^。]*教程[^。]*BLOCK|BLOCK[^。]*泛 Linux[^。]*教程/);
   assert.match(PREFILTER_SYSTEM, /社区八卦/);
@@ -321,4 +351,26 @@ test("a source's language is an Accept-Language value, refused by kinds that rea
     }
   }
   for (const kind of ["x_search", "mp_account", "external"] as const) assert.deepEqual(unsupportedConfig(kind, { acceptLanguage: "en" }), ["acceptLanguage"], kind);
+});
+
+test("the security and release slice keeps its verified official endpoints", () => {
+  const pack = JSON.parse(readFileSync(path.join(ROOT, "industry/sources.json"), "utf8")) as {
+    sources: Array<{ id: string; kind: "rss" | "json_list"; config: Record<string, unknown>; tier: string; participation_mode: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  const sliceIds = new Set(["rss-kernel-org-kdist", "json-kernel-org-releases", "rss-lore-linux-cve-announce"]);
+  const sources = pack.sources.filter((item) => sliceIds.has(item.id));
+  const endpoints = sources.map((item) => item.kind === "rss" ? item.config.feedUrl : item.config.url);
+  assert.deepEqual(endpoints, [
+    "https://www.kernel.org/feeds/kdist.xml",
+    "https://www.kernel.org/releases.json",
+    "https://lore.kernel.org/linux-cve-announce/new.atom",
+  ]);
+  assert.equal(sources.length, 3);
+  for (const item of sources) {
+    assert.equal(item.tier, "T1");
+    assert.equal(item.participation_mode, "editorial");
+    assert.equal(item.site_fulltext, false);
+    assert.equal(item.syndicate_fulltext, false);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+  }
 });
