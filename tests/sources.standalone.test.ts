@@ -7,7 +7,9 @@
 // must reach every read of it.
 import "./setup.ts";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import http from "node:http";
+import path from "node:path";
 import { after, test } from "node:test";
 import { config } from "@aihot/backend/config";
 import { extractFromUrl, pageRules } from "@aihot/backend/content/extract";
@@ -19,6 +21,7 @@ import { fetchJsonList } from "@aihot/backend/sources/json-list";
 import { noiseFiltered } from "@aihot/backend/sources/filters";
 
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
+const ROOT = path.resolve(import.meta.dirname, "..");
 
 const pages: Record<string, () => string> = {
   // A news site's feed: a teaser that ends in "Read the full story", next to a post whose feed carries it whole.
@@ -281,4 +284,23 @@ test("a source's language is an Accept-Language value, refused by kinds that rea
     }
   }
   for (const kind of ["x_search", "mp_account", "external"] as const) assert.deepEqual(unsupportedConfig(kind, { acceptLanguage: "en" }), ["acceptLanguage"], kind);
+});
+
+test("the security and release slice seeds only its verified official endpoints", () => {
+  const pack = JSON.parse(readFileSync(path.join(ROOT, "industry/sources.json"), "utf8")) as {
+    sources: Array<{ id: string; kind: "rss" | "json_list"; config: Record<string, unknown>; tier: string; participation_mode: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  const endpoints = pack.sources.map((item) => item.kind === "rss" ? item.config.feedUrl : item.config.url);
+  assert.deepEqual(endpoints, [
+    "https://www.kernel.org/feeds/kdist.xml",
+    "https://www.kernel.org/releases.json",
+    "https://lore.kernel.org/linux-cve-announce/new.atom",
+  ]);
+  for (const item of pack.sources) {
+    assert.equal(item.tier, "T1");
+    assert.equal(item.participation_mode, "editorial");
+    assert.equal(item.site_fulltext, false);
+    assert.equal(item.syndicate_fulltext, false);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+  }
 });

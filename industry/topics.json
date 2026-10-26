@@ -2,21 +2,39 @@
   "groups": [
     {
       "key": "company",
-      "name": "公司与模型",
-      "blurb": "按厂商追踪模型、产品与公司动态"
+      "name": "公司与机构",
+      "blurb": "按公司与机构追踪 Linux 内核贡献和工程动态"
     },
     {
       "key": "field",
       "name": "技术方向",
-      "blurb": "按技术领域深挖：Agent、多模态、具身智能……"
+      "blurb": "按内核子系统与技术方向追踪进展"
     },
     {
       "key": "genre",
       "name": "内容类型",
-      "blurb": "按体裁浏览：论文、教程、观点、政策……"
+      "blurb": "按发布、安全修复与技术解读等内容形态浏览"
     }
   ],
   "topics": [
+    {
+      "slug": "security-fixes",
+      "name": "安全修复",
+      "group": "genre",
+      "tags": [
+        "安全修复"
+      ],
+      "definition": "Linux 内核 CVE、安全修复、缓解措施与有证据支持的漏洞利用动态；仅有 CVE 编号不代表已利用或足以成为热点。"
+    },
+    {
+      "slug": "kernel-releases",
+      "name": "内核发布",
+      "group": "genre",
+      "tags": [
+        "内核发布"
+      ],
+      "definition": "主线、RC、stable/LTS 发布，以及 linux-next 与合并窗口的重要结果。"
+    },
     {
       "slug": "openai",
       "name": "OpenAI / ChatGPT",
