@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import net from "node:net";
+import { ADDRCONFIG, type LookupOptions } from "node:dns";
 import dns from "node:dns/promises";
 import { syncBuiltinESMExports } from "node:module";
 import { after, mock, test } from "node:test";
@@ -66,6 +67,22 @@ test("blocked DNS names keep their boundary with a trailing root dot", async () 
       assert.equal(error?.code, "EBLOCKED", `${name}, all=${all}`);
     }
     assert.equal(lookups, 0, "blocked names are rejected before resolving an address");
+  } finally {
+    mock.restoreAll(); syncBuiltinESMExports();
+  }
+});
+
+test("the connection guard preserves resolver hints from the socket", async () => {
+  let received: LookupOptions | undefined;
+  mock.method(dns, "lookup", async (_host: string, options: LookupOptions) => {
+    received = options;
+    return [{ address: "93.184.216.34", family: 4 }];
+  });
+  syncBuiltinESMExports();
+  try {
+    const hints = ADDRCONFIG;
+    await new Promise<void>((resolve, reject) => guardedLookup("public.invalid", { all: true, hints } as never, (error) => error ? reject(error) : resolve()));
+    assert.equal(received?.hints, hints);
   } finally {
     mock.restoreAll(); syncBuiltinESMExports();
   }

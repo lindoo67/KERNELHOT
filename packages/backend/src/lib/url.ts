@@ -196,14 +196,16 @@ type LookupCallback = (err: NodeJS.ErrnoException | null, address: string | Arra
  * it closes the gap between the URL check and the connection (DNS rebinding). `privateHosts` as in
  * assertPublicUrl.
  */
-export function guardedLookup(hostname: string, options: { all?: boolean; family?: number } | number, callback: LookupCallback, privateHosts: readonly string[] = []): void {
+export function guardedLookup(hostname: string, options: { all?: boolean; family?: number; hints?: number } | number, callback: LookupCallback, privateHosts: readonly string[] = []): void {
   const opts = typeof options === "number" ? { family: options } : options;
   const listed = privateHosts.includes(hostname.toLowerCase());
   if (!listed && blockedHostname(hostname.toLowerCase())) {
     callback(Object.assign(new Error(`Blocked host ${hostname}`), { code: "EBLOCKED" }), opts.all ? [] : "", 0);
     return;
   }
-  lookup(hostname, { all: true, family: opts.family ?? 0 }).then(
+  // Keep ADDRCONFIG and other socket hints. Dropping them can return an unusable address family;
+  // Node's family autoselection then abandons a still-connecting public address too early.
+  lookup(hostname, { all: true, family: opts.family ?? 0, hints: opts.hints ?? 0 }).then(
     (list) => {
       const bad = list.find((a) => refusedAddress(a.address, listed));
       if (bad || list.length === 0) {
