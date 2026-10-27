@@ -117,8 +117,8 @@ test("report-period prompt uses kernel domain terms, not AI examples", () => {
   assert.ok(/人名/.test(system), "prompt must reference person names");
 });
 
-// #8 Slice C: terms, privacy, and changelog state are marked as pre-launch pending review.
-test("terms, privacy, and changelog are pre-launch pending review", () => {
+// #8 Slice C: policy pages await review while the changelog reflects the intranet launch.
+test("policy pages await review and changelog announces the intranet launch", () => {
   const ROOT = path.resolve(import.meta.dirname, "..");
 
   // terms.md and privacy.md should say they need final confirmation by the operator.
@@ -127,11 +127,10 @@ test("terms, privacy, and changelog are pre-launch pending review", () => {
   assert.ok(/待最终确认|待运营者|待确认|待审阅/.test(terms), "terms.md must state it needs final operator review");
   assert.ok(/待最终确认|待运营者|待确认|待审阅/.test(privacy), "privacy.md must state it needs final operator review");
 
-  // changelog.json must NOT claim the website is already live.
   const changelogRaw = readFileSync(path.join(ROOT, "site/changelog.json"), "utf8");
   const changelog = JSON.parse(changelogRaw);
-  const fullText = JSON.stringify(changelog);
-  assert.ok(!/网站上线|正式上线|已上线/.test(fullText), "changelog must not claim the site is already launched");
-  // Must indicate pending review status.
-  assert.ok(/待.*[确审]|准备|上线准备|待最终/.test(fullText) || changelog.releases.length === 0, "changelog must indicate pre-launch pending review state");
+  const latest = changelog.releases[0];
+  assert.equal(changelog.latestVersion, `${latest.date}T${latest.time}`);
+  assert.equal(latest.kind, "公告");
+  assert.match(`${latest.title}\n${latest.body.join("\n")}`, /内网.*(?:上线|开放访问)/);
 });
