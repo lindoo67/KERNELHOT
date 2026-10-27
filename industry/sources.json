@@ -5,67 +5,67 @@
       "id": "rss-lore-lkml",
       "name": "Lore · LKML",
       "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/linux-kernel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/linux-kernel/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-netdev", "name": "Lore · netdev", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/netdev/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/netdev/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-bpf", "name": "Lore · bpf", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/bpf/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/bpf/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-linux-mm", "name": "Lore · linux-mm", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/linux-mm/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/linux-mm/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-linux-fsdevel", "name": "Lore · linux-fsdevel", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/linux-fsdevel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/linux-fsdevel/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-linux-block", "name": "Lore · linux-block", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/linux-block/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/linux-block/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-linux-pm", "name": "Lore · linux-pm", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/linux-pm/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/linux-pm/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-linux-riscv", "name": "Lore · linux-riscv", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/linux-riscv/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/linux-riscv/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 120,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-linux-arm-kernel", "name": "Lore · linux-arm-kernel", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/linux-arm-kernel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/linux-arm-kernel/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 120,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-dri-devel", "name": "Lore · dri-devel", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/dri-devel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/dri-devel/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
       "id": "rss-lore-kvm", "name": "Lore · kvm", "kind": "rss",
-      "config": { "feedUrl": "https://lore.kernel.org/kvm/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "config": { "feedUrl": "https://lore.kernel.org/kvm/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
       "site_fulltext": false, "syndicate_fulltext": false
     },
@@ -186,6 +186,7 @@
       "kind": "rss",
       "config": {
         "feedUrl": "https://lore.kernel.org/linux-cve-announce/new.atom",
+        "atomUpdatedIsPublished": true,
         "_aihot": { "initialBackfillLimit": 24 }
       },
       "tier": "T1",

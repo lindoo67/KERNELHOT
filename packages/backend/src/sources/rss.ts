@@ -232,12 +232,17 @@ export async function fetchRss(source: SourceRow, opts: { force?: boolean } = {}
       const plainBody = atomPlainText(body);
       const bodyHtmlRaw = plainBody === null ? text(body) : escapeXml(plainBody);
       const bodyHtml = bodyHtmlRaw ? sanitizeBody(bodyHtmlRaw, entryUrl) : null;
+      const published = readPublicationDate(text(e.published), source.config.publishedAtUtcOffset);
+      const publication = published.publishedAt || source.config.atomUpdatedIsPublished !== true
+        ? published
+        : readPublicationDate(text(e.updated), source.config.publishedAtUtcOffset);
       out.push({
         url: entryUrl,
         title,
         author: text(arr(e.author)[0]?.name) || null,
-        // Atom updated describes a revision, not the original publication.
-        ...readPublicationDate(text(e.published), source.config.publishedAtUtcOffset),
+        // Atom updated normally describes a revision, not the original publication. Immutable feeds
+        // may explicitly declare that it is also the entry's publication time.
+        ...publication,
         sourceUpdatedAt: parseDate(text(e.updated)),
         ...feedText(bodyHtml, summary, source, !video, plainBody),
         ...(videoExcerpt ? { excerpt: videoExcerpt } : {}),

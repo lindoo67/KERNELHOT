@@ -38,8 +38,8 @@ after(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
 });
 
-async function read(path: string) {
-  return (await fetchRss({ config: { feedUrl: root + path }, participation_mode: "editorial" } as never)).candidates;
+async function read(path: string, sourceConfig: Record<string, unknown> = {}) {
+  return (await fetchRss({ config: { feedUrl: root + path, ...sourceConfig }, participation_mode: "editorial" } as never)).candidates;
 }
 
 test("Atom article links honor absolute xml:base on feed, entry and link", async () => {
@@ -82,4 +82,11 @@ test("Atom update time never substitutes for missing or malformed publication ti
   for (const item of [unknown, published, invalid]) {
     assert.equal(item!.sourceUpdatedAt?.toISOString(), "2026-10-01T00:00:00.000Z");
   }
+});
+
+test("an explicitly immutable Atom source may use update time when publication time is absent", async () => {
+  const [unknown, published, invalid] = await read("/dates", { atomUpdatedIsPublished: true });
+  assert.equal(unknown!.publishedAt?.toISOString(), "2026-10-01T00:00:00.000Z");
+  assert.equal(invalid!.publishedAt?.toISOString(), "2026-10-01T00:00:00.000Z");
+  assert.equal(published!.publishedAt?.toISOString(), "2020-02-15T00:00:00.000Z");
 });
