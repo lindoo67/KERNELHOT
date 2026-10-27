@@ -8,38 +8,43 @@
 
 ## 内容类型
 
-`itemType` 必须七选一：
+`itemType` 必须八选一：
 
-- `model_release`：新模型或大版本更新
-- `product_launch`：新产品、工具或重大功能更新
-- `tool_or_prompt`：可直接复用的方法、Prompt、Skill 或技巧
-- `research_paper`：论文、研究或技术报告
-- `industry_event`：融资、收购、监管、诉讼、商业动作或人事
-- `opinion_analysis`：观点、行业判断、复盘或长访谈
-- `tutorial_explainer`：教程、科普、解读或评测
+- `kernel_release`：主线版本、RC、stable/LTS 发布
+- `security_fix`：内核漏洞、CVE、安全补丁
+- `subsystem_change`：内核子系统（调度、内存、文件系统、网络、BPF、虚拟化等）的架构改动或重大合并
+- `driver_update`：新驱动、硬件支持、驱动重构
+- `performance`：有基准数据的性能优化、回归、功耗变化
+- `distro_kernel`：发行版内核补丁、配置和上游协作
+- `community_governance`：维护者变动、开发流程决议、重大会议
+- `technical_article`：有方法说明的内核深度分析、架构解读
 
-优先级：发了模型选 model_release；发了工具选 product_launch；发了 Prompt 或方法选 tool_or_prompt；论文优先 research_paper；评测选 tutorial_explainer。原文把发布写成过去的事、本条在讲用法或做演示时，不算本次发布，选 tutorial_explainer。
+优先级：正式版本发布选 kernel_release；安全漏洞选 security_fix；子系统机制改动选 subsystem_change；硬件驱动选 driver_update；有数据的性能变化选 performance；发行版改动选 distro_kernel；维护者变动选 community_governance；深度分析选 technical_article。原文把发布写成过去的事、本条在讲用法或做解读时，不算本次发布，选 technical_article。
 
-输出前检查 `itemType` 与第一个分类标签是否自洽：`model_release` 对应“模型发布”，`product_launch` 对应“产品更新”，`research_paper` 对应“论文/研究”，`industry_event` 对应“行业动态”或“政策/监管”，`opinion_analysis` 对应“大佬观点”或“现象/趋势”，`tutorial_explainer` 对应“教程/实践”或“评测/基准”。如果二者冲突，按当前材料的核心事件修正后再输出。
+发行版内核分支的上游补丁、分支策略与支持周期选 `distro_kernel`，下游补丁不得写成已进入主线。维护者提名、maintainer sign-off 与已生效的职责变更必须区分；LPC 议程、Kernel Summit 提案或讨论不得写成社区已有决定。技术文章只在有明确方法、可核对证据或复现路径时选 `technical_article`。
+
+版本公告回顾安全修复时，以当前主要动作判断；CVE 公告不是内核版本发布，版本发布说明列出普通 CVE 也不自动变成安全热点。区分主线、RC、stable/LTS、linux-next 与 merge window（合并窗口），不要把它们统称为新版。
+
+输出前检查 `itemType` 与第一个分类标签是否自洽：`kernel_release` 对应”内核发布”，`security_fix` 对应”安全修复”，`subsystem_change` 对应”子系统变更”，`driver_update` 对应”驱动更新”，`performance` 对应”性能优化”，`distro_kernel` 对应”发行版内核”，`community_governance` 对应”社区治理”，`technical_article` 对应”技术解读”。如果二者冲突，按当前材料的核心事件修正后再输出。
 
 ## 作者角色
 
 `authorRole` 必须三选一，回答“这条内容的信息源头是不是作者本人”：
 
-- `principal`：作者本人或所属组织就是当事方，例如官方账号发布自家产品、员工宣布或说明自家产品。
+- `principal`：作者本人或所属组织就是当事方，例如维护者发布自己维护的内核版本、提交者说明自己的补丁集。
 - `observer`：作者以第一手身份独立实测、亲历、原创分析或产出原创方法。
 - `relayer`：作者在转发、引用、翻译或归纳他人信息。主体信息来自引用块时选 relayer。
 
 ## 标签
 
-`tags` 输出 1–6 个字符串。第一个必须从以下分类标签中选一个：模型发布、产品更新、开源/仓库、论文/研究、教程/实践、大佬观点、评测/基准、安全/对齐、现象/趋势、行业动态、政策/监管、非AI/通用工具、其他。
+`tags` 输出 1–6 个字符串。第一个必须从以下分类标签中选一个：安全修复、内核发布、子系统变更、驱动更新、性能优化、可靠性、发行版内核、社区治理、技术解读、其他。
 
 其后可选 0–5 个适用标签，并且只能来自以下两个白名单：
 
-- 主题：Agent、编码、推理、多模态、语音、视频、图像生成、RAG、端侧、数据/训练、搜索、部署/工程、开源生态、具身智能、MCP/工具调用
-- 实体：OpenAI、Anthropic、DeepSeek、DeepMind、Google、Meta、Microsoft、xAI、Hugging Face、GitHub、arXiv
+- 主题：调度、内存管理、文件系统、网络、BPF、虚拟化、实时内核、电源管理、可观测性、Rust for Linux、x86、Arm、RISC-V、GPU、存储
+- 实体：Red Hat、SUSE、Canonical、Google、Intel、AMD、NVIDIA、Arm、IBM、Oracle、Microsoft、AWS、Meta、华为、阿里巴巴、腾讯、Linux Foundation
 
-正文中即使明确出现了 NVIDIA、Apple、阿里等其他实体，也不要把它们放进 `tags`。不要创造白名单之外的标签。没有适用的主题或实体时，只返回第一个分类标签；例如学校限制 AI 使用的监管新闻，不需要强行归到“编码”或“推理”。
+正文中即使明确出现了其他公司或机构名，也不要把它们放进 `tags`。不要创造白名单之外的标签。没有适用的主题或实体时，只返回第一个分类标签。
 
 ## 候选阅读价值
 
@@ -49,14 +54,21 @@
 
 材料只有下载口号、标题、营销话术，或无法支持任何具体阅读价值时，`editorialJudgment` 必须返回空字符串；宁可不展示，也不要编造价值或写成劝退式审稿意见。是否为空不改变其他字段，也不影响系统的精选计算。
 
+安全内容优先说明利用状态、影响范围、受影响/LTS 分支与修复状态；版本内容优先说明主线/RC/stable/LTS 身份、支持状态或合并窗口结果。材料只有 CVE 编号或版本号时，不得自行补写严重程度、利用状态、影响范围或支持周期。
+
 ## 中文标题和摘要
 
-`titleZh` 必须是自洽的中文标题，包含事件主体以及动作或结果。保留必要的模型名、产品名、版本号、机构名和关键数字，不写“最新动态”“引发关注”等空话。原标题已经是中文时也要保证脱离来源名后仍能独立理解。
+`titleZh` 必须是自洽的中文标题，包含事件主体以及动作或结果。保留必要的子系统名、驱动名、内核版本号、机构名和关键数字，不写“最新动态”“引发关注”等空话。原标题已经是中文时也要保证脱离来源名后仍能独立理解。
 
-`summaryZh` 必须忠实使用当前材料。短 X 推文完整翻译作者自己的主推文；长推文或文章先写核心事实，再写一层关键细节或影响。保留关键数字、版本、机构、模型和 URL；引用内容只作上下文，不冒充主推作者自己的话。
+`summaryZh` 必须忠实使用当前材料。短 X 推文完整翻译作者自己的主推文；长推文或文章先写核心事实，再写一层关键细节或影响。保留关键数字、内核版本、机构、子系统或驱动名和 URL；引用内容只作上下文，不冒充主推作者自己的话。
 
-图片只能补充清晰可见、与正文直接相关的事实。忽略头像、品牌图、装饰图、模糊内容和与正文重复的信息。不得仅凭图片猜测人物身份、地点、时间、因果、性能或产品能力；图文冲突时不得擅自裁决。
+安全条目明确区分“受影响”“存在利用条件”“已有概念验证”“已在野利用”，写明原文给出的影响范围和修复状态；没有证据不得写“已利用”或“影响广泛”。不把补丁提议写成已合并，不把发行版修复写成所有上游分支已修复，不从 CVE 编号推断严重程度。
+发行版内核条目说清上游基线、下游补丁或支持范围；社区治理条目说清提名、maintainer sign-off、议程、提案或已生效决定的实际阶段；技术解读保留关键证据、分析步骤或复现方法。
+
+图片只能补充清晰可见、与正文直接相关的事实。忽略头像、品牌图、装饰图、模糊内容和与正文重复的信息。不得仅凭图片猜测人物身份、地点、时间、因果、性能或内核能力；图文冲突时不得擅自裁决。
+
+{{> rules-domain}}
 
 只返回合法 JSON，不要 Markdown，不要解释。顶层必须且只能包含以下六个字段：
 
-{"itemType":"product_launch","authorRole":"principal","tags":["产品更新","Agent"],"editorialJudgment":"原文给出了能力变化和开放入口，读者可以据此判断它会怎样改变现有工作流。","titleZh":"某产品发布智能体功能","summaryZh":"某产品发布新的智能体功能，给出了开放入口和主要能力变化。"}
+{"itemType":"subsystem_change","authorRole":"principal","tags":["子系统变更","调度"],"editorialJudgment":"原文给出了调度器改动的合并状态与适用范围，便于评估对现有负载的影响。","titleZh":"Linux 调度器合并一项机制调整","summaryZh":"该改动已合入主线，原文说明了涉及的调度路径、适用条件与兼容性影响。"}

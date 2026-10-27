@@ -7,18 +7,88 @@
 // must reach every read of it.
 import "./setup.ts";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import http from "node:http";
+import path from "node:path";
 import { after, test } from "node:test";
 import { config } from "@aihot/backend/config";
 import { extractFromUrl, pageRules } from "@aihot/backend/content/extract";
 import { sanitizeBody, trimTrailingChrome } from "@aihot/backend/content/sanitize";
+import { SCORE_SYSTEM } from "@aihot/backend/editorial/analyze";
+import { PREFILTER_SYSTEM, UNDERSTAND_SYSTEM } from "@aihot/backend/editorial/writing";
 import { unsupportedConfig } from "@aihot/backend/sources/config-keys";
 import { fetchDetail, fetchWebList, fromHtml, fromMarkdown } from "@aihot/backend/sources/web-list";
 import { fetchRss } from "@aihot/backend/sources/rss";
 import { fetchJsonList } from "@aihot/backend/sources/json-list";
 import { noiseFiltered } from "@aihot/backend/sources/filters";
+import { SELECTION } from "@aihot/industry/selection";
 
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
+const ROOT = path.resolve(import.meta.dirname, "..");
+
+test("the industry seed keeps the runnable subsystem, driver and performance feeds", () => {
+  const file = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../industry/sources.json"), "utf8")) as {
+    sources: Array<{ id: string; kind: "rss" | "json_list"; config: Record<string, unknown>; tier: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  assert.deepEqual(Object.keys(file), ["$comment", "sources"]);
+  const sliceIds = new Set(["rss-lore-lkml", "rss-lore-netdev", "rss-lore-bpf", "rss-lore-linux-mm", "rss-lore-linux-fsdevel", "rss-lore-linux-block", "rss-lore-linux-pm", "rss-lore-linux-riscv", "rss-lore-linux-arm-kernel", "rss-lore-dri-devel", "rss-lore-kvm", "rss-lwn", "rss-phoronix"]);
+  const sources = file.sources.filter((item) => sliceIds.has(item.id));
+  assert.equal(sources.length, 13);
+  for (const item of sources) {
+    assert.equal(item.kind, "rss", item.id);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+    assert.equal((item.config._aihot as { initialBackfillLimit?: number })?.initialBackfillLimit, 8, item.id);
+    assert.equal(item.site_fulltext, false, item.id);
+    assert.equal(item.syndicate_fulltext, false, item.id);
+    assert.doesNotMatch(String(item.config.feedUrl), /\/all\/rss$/);
+  }
+  const lwn = sources.find((item) => item.id === "rss-lwn");
+  assert.deepEqual(lwn && [lwn.tier, lwn.config.summaryIsBody], ["T2", true]);
+  assert.equal(sources.find((item) => item.id === "rss-phoronix")?.tier, "T2");
+});
+
+test("distro, community and technical article sources keep their editorial boundaries", () => {
+  const file = JSON.parse(readFileSync(new URL("../industry/sources.json", import.meta.url), "utf8")) as {
+    sources: Array<{ id: string; kind: string; tier: string; participation_mode: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  assert.equal(file.sources.length, 21);
+  assert.equal(new Set(file.sources.map((item) => item.id)).size, 21);
+  assert.ok(file.sources.every((item) => item.participation_mode === "editorial"));
+  assert.ok(file.sources.every((item) => item.site_fulltext === false && item.syndicate_fulltext === false));
+  const byId = new Map(file.sources.map((item) => [item.id, item]));
+  const expected = [
+    ["rss-kernelnewbies-releases", "T1_5"],
+    ["rss-linux-plumbers", "T1_5"],
+    ["web-kernel-summit-2026", "T1_5"],
+    ["rss-lwn", "T2"],
+    ["rss-phoronix", "T2"],
+  ] as const;
+  for (const [id, tier] of expected) {
+    const item = byId.get(id);
+    assert.ok(item, id);
+    assert.equal(item.tier, tier, id);
+    assert.equal(item.site_fulltext, false, id);
+    assert.equal(item.syndicate_fulltext, false, id);
+    assert.deepEqual(unsupportedConfig(item.kind as never, item.config), [], id);
+  }
+  assert.equal(byId.get("rss-lwn")!.config.feedUrl, "https://lwn.net/headlines/rss");
+  assert.equal(byId.get("rss-lwn")!.config.summaryIsBody, true);
+  assert.equal(byId.get("rss-lwn")!.config.fetchPublicContent, false, "LWN never requests paid article text");
+  assert.equal(byId.get("rss-phoronix")!.config.fetchPublicContent, false, "Phoronix stays feed-only");
+
+  assert.match(PREFILTER_SYSTEM, /泛 Linux[^。]*教程[^。]*BLOCK|BLOCK[^。]*泛 Linux[^。]*教程/);
+  assert.match(PREFILTER_SYSTEM, /社区八卦/);
+  assert.match(SCORE_SYSTEM, /distro_kernel\s*\|\s*2\s*\|\s*1\s*\|\s*2\s*\|\s*3\s*\|\s*2/);
+  assert.match(SCORE_SYSTEM, /community_governance\s*\|\s*2\s*\|\s*2\s*\|\s*2\s*\|\s*3\s*\|\s*1/);
+  assert.match(SCORE_SYSTEM, /technical_article\s*\|\s*1\s*\|\s*1\s*\|\s*1\s*\|\s*3\s*\|\s*4/);
+  assert.deepEqual(SELECTION.thresholds, { T1: 60, T1_5: 65, T2: 76 }, "thresholds stay pending sample calibration");
+  assert.match(UNDERSTAND_SYSTEM, /发行版内核分支/);
+  assert.match(UNDERSTAND_SYSTEM, /maintainer sign-off/);
+  assert.match(UNDERSTAND_SYSTEM, /LPC 议程/);
+  const articlePrompt = readFileSync(new URL("../industry/prompts/summarize-article.md", import.meta.url), "utf8");
+  assert.match(articlePrompt, /发行版补丁不得写成已进入主线/);
+  assert.match(articlePrompt, /会议议程、提案和讨论不得写成社区已经达成决定/);
+});
 
 const pages: Record<string, () => string> = {
   // A news site's feed: a teaser that ends in "Read the full story", next to a post whose feed carries it whole.
@@ -281,4 +351,64 @@ test("a source's language is an Accept-Language value, refused by kinds that rea
     }
   }
   for (const kind of ["x_search", "mp_account", "external"] as const) assert.deepEqual(unsupportedConfig(kind, { acceptLanguage: "en" }), ["acceptLanguage"], kind);
+});
+
+test("the security and release slice keeps its verified official endpoints", () => {
+  const pack = JSON.parse(readFileSync(path.join(ROOT, "industry/sources.json"), "utf8")) as {
+    sources: Array<{ id: string; kind: "rss" | "json_list"; config: Record<string, unknown>; tier: string; participation_mode: string; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  const sliceIds = new Set(["rss-kernel-org-kdist", "json-kernel-org-releases", "rss-lore-linux-cve-announce"]);
+  const sources = pack.sources.filter((item) => sliceIds.has(item.id));
+  const endpoints = sources.map((item) => item.kind === "rss" ? item.config.feedUrl : item.config.url);
+  assert.deepEqual(endpoints, [
+    "https://www.kernel.org/feeds/kdist.xml",
+    "https://www.kernel.org/releases.json",
+    "https://lore.kernel.org/linux-cve-announce/new.atom",
+  ]);
+  assert.equal(sources.length, 3);
+  for (const item of sources) {
+    assert.equal(item.tier, "T1");
+    assert.equal(item.participation_mode, "editorial");
+    assert.equal(item.site_fulltext, false);
+    assert.equal(item.syndicate_fulltext, false);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+  }
+});
+
+test("distro security RSS feeds (Red Hat RHSA, Ubuntu Notices) have safe config", () => {
+  const file = JSON.parse(readFileSync(new URL("../industry/sources.json", import.meta.url), "utf8")) as {
+    sources: Array<{ id: string; kind: string; tier: string; participation_mode: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  const distroIds = new Set(["rss-redhat-rhsa", "rss-ubuntu-notices"]);
+  const sources = file.sources.filter((item) => distroIds.has(item.id));
+  assert.equal(sources.length, 2, "both distro feeds present");
+  for (const item of sources) {
+    assert.equal(item.kind, "rss", item.id);
+    assert.equal(item.tier, "T1", item.id);
+    assert.equal(item.participation_mode, "editorial", item.id);
+    assert.equal(item.site_fulltext, false, item.id);
+    assert.equal(item.syndicate_fulltext, false, item.id);
+    assert.ok(Object.hasOwn(item.config, "feedUrl"), item.id);
+    assert.ok(String(item.config.feedUrl).includes(".rss") || String(item.config.feedUrl).includes(".xml"), item.id);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+  }
+});
+
+test("public API summary references Linux kernel, not AI", () => {
+  const spec = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../site/public/openapi-v1.json"), "utf8")) as {
+    paths: Record<string, { get: { summary: string } }>;
+  };
+  const listPath = "/api/v1/items";
+  assert.ok(Object.hasOwn(spec.paths, listPath), listPath + " exists");
+  assert.ok(/Linux kernel/i.test(spec.paths[listPath].get.summary), `summary should mention Linux kernel, got: ${spec.paths[listPath].get.summary}`);
+  assert.ok(!/AI/i.test(spec.paths[listPath].get.summary), `summary should not mention AI, got: ${spec.paths[listPath].get.summary}`);
+});
+
+test("summarize-long-post prompt is Linux-kernel focused with quoted-post guidance", () => {
+  const prompt = readFileSync(new URL("../industry/prompts/summarize-long-post.md", import.meta.url), "utf8");
+  assert.match(prompt, /Linux 内核领域资深编辑/, "prompt should use Linux kernel editor role");
+  assert.doesNotMatch(prompt, /AI 行业资深编辑/, "prompt should not contain AI industry editor role");
+  assert.ok(/关键信息.*整合|整合.*关键信息/.test(prompt), "prompt should integrate key context from quoted posts");
+  assert.match(prompt, /不要逐句复述.*照搬/, "prompt should not reproduce quoted content line-by-line");
+  assert.doesNotMatch(prompt, /模型名.*参数规模.*速度倍数.*价格/, "prompt should not contain old AI model/price phrase");
 });

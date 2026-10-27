@@ -1,368 +1,227 @@
 {
-  "$comment": "示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里新建、修改和暂停。字段说明见 docs/customize.md。",
+  "$comment": "KernelHOT 首批已验证的一手信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。全部只发布摘要和原文链接。",
   "sources": [
     {
-      "id": "rss-openai-news",
-      "name": "OpenAI News",
+      "id": "rss-lore-lkml",
+      "name": "Lore · LKML",
+      "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-kernel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-netdev", "name": "Lore · netdev", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/netdev/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-bpf", "name": "Lore · bpf", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/bpf/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-mm", "name": "Lore · linux-mm", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-mm/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-fsdevel", "name": "Lore · linux-fsdevel", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-fsdevel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-block", "name": "Lore · linux-block", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-block/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-pm", "name": "Lore · linux-pm", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-pm/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-riscv", "name": "Lore · linux-riscv", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-riscv/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 120,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-arm-kernel", "name": "Lore · linux-arm-kernel", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-arm-kernel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 120,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-dri-devel", "name": "Lore · dri-devel", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/dri-devel/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-kvm", "name": "Lore · kvm", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/kvm/new.atom", "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lwn", "name": "LWN.net", "kind": "rss",
+      "config": { "feedUrl": "https://lwn.net/headlines/rss", "summaryIsBody": true, "fetchPublicContent": false, "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "participation_mode": "editorial", "interval_minutes": 120,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-phoronix", "name": "Phoronix", "kind": "rss",
+      "config": { "feedUrl": "https://www.phoronix.com/rss.php", "fetchPublicContent": false, "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T2", "participation_mode": "editorial", "interval_minutes": 120,
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-kernel-org-kdist",
+      "name": "kernel.org release feed",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://openai.com/news/rss.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "feedUrl": "https://www.kernel.org/feeds/kdist.xml",
+        "_aihot": { "initialBackfillLimit": 12 }
       },
       "tier": "T1",
-      "owner_entity_id": "openai",
       "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
+      "interval_minutes": 240,
+      "tags": ["官方", "内核发布"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-google-deepmind",
-      "name": "Google DeepMind",
-      "kind": "rss",
+      "id": "json-kernel-org-releases",
+      "name": "kernel.org release metadata",
+      "kind": "json_list",
       "config": {
-        "feedUrl": "https://deepmind.google/blog/rss.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.kernel.org/releases.json",
+        "itemsPath": "releases",
+        "titlePaths": ["version"],
+        "summaryPaths": ["moniker"],
+        "publishedAtPath": "released.isodate",
+        "publishedAtUtcOffset": "+00:00",
+        "externalIdPath": "version",
+        "urlTemplate": "{raw:gitweb}",
+        "_aihot": { "initialBackfillLimit": 12 }
       },
       "tier": "T1",
-      "owner_entity_id": "google",
       "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
+      "interval_minutes": 240,
+      "tags": ["官方", "内核发布"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-google-research",
-      "name": "Google Research",
+      "id": "rss-kernelnewbies-releases",
+      "name": "KernelNewbies · Linux release changes",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://research.google/blog/rss/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "feedUrl": "https://kernelnewbies.org/RecentChanges?action=rss_rc&unique=1&page=%5ELinux_%5B0-9%5D",
+        "itemUrlPrefixRewrite": { "from": "http://kernelnewbies.org/", "to": "https://kernelnewbies.org/" },
+        "fetchPublicContent": true,
+        "_aihot": { "initialBackfillLimit": 15 }
       },
-      "tier": "T1",
-      "owner_entity_id": "google",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-hugging-face",
-      "name": "Hugging Face Blog",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://huggingface.co/blog/feed.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "hugging-face",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "开源"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-microsoft-research",
-      "name": "Microsoft Research",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.microsoft.com/en-us/research/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "microsoft",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-nvidia-blog",
-      "name": "NVIDIA Blog",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://blogs.nvidia.com/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "nvidia",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-aws-ml",
-      "name": "AWS Machine Learning Blog",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://aws.amazon.com/blogs/machine-learning/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
+      "tier": "T1_5",
       "owner_entity_id": null,
       "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "教程"
-      ],
+      "interval_minutes": 240,
+      "tags": ["准官方", "技术解读"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-github-ai",
-      "name": "GitHub Blog · AI & ML",
+      "id": "rss-linux-plumbers",
+      "name": "Linux Plumbers Conference",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://github.blog/ai-and-ml/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "feedUrl": "https://lpc.events/blog/current/index.php/feed/",
+        "publisherRole": "organization",
+        "publisherUrlPrefixes": ["https://lpc.events/blog/current/"],
+        "fetchPublicContent": true,
+        "_aihot": { "initialBackfillLimit": 10 }
       },
-      "tier": "T1",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-mistral",
-      "name": "Mistral AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://mistral.ai/news/rss",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-bair",
-      "name": "Berkeley AI Research",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://bair.berkeley.edu/blog/feed.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": null,
+      "tier": "T1_5",
+      "owner_entity_id": "linux-foundation",
       "participation_mode": "editorial",
       "interval_minutes": 180,
-      "tags": [
-        "研究"
-      ],
+      "tags": ["准官方", "社区治理"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-the-verge-ai",
-      "name": "The Verge · AI",
-      "kind": "rss",
+      "id": "web-kernel-summit-2026",
+      "name": "Kernel Summit 2026 · LPC agenda",
+      "kind": "web_list",
       "config": {
-        "feedUrl": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://lpc.events/event/20/sessions/248/",
+        "parseMode": "html",
+        "itemSelector": ".contribution-row",
+        "linkSelector": ".contrib-title a",
+        "titleSelector": ".contrib-title a",
+        "publishedAtSelector": ".contrib-time",
+        "publishedAtUtcOffset": "+02:00",
+        "allowUrlPrefixes": ["https://lpc.events/event/20/contributions/"],
+        "publisherRole": "organization",
+        "publisherUrlPrefixes": ["https://lpc.events/event/20/"],
+        "_aihot": { "initialBackfillLimit": 8 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1_5",
+      "owner_entity_id": "linux-foundation",
       "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
+      "interval_minutes": 360,
+      "tags": ["准官方", "社区治理"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-techcrunch-ai",
-      "name": "TechCrunch · AI",
+      "id": "rss-lore-linux-cve-announce",
+      "name": "Linux CVE announcements",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "feedUrl": "https://lore.kernel.org/linux-cve-announce/new.atom",
+        "_aihot": { "initialBackfillLimit": 24 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-ars-technica-ai",
-      "name": "Ars Technica · AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://arstechnica.com/ai/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-mit-tech-review-ai",
-      "name": "MIT Technology Review · AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
       "interval_minutes": 120,
-      "tags": [
-        "媒体"
-      ],
+      "tags": ["官方", "安全修复"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-the-decoder",
-      "name": "The Decoder",
+      "id": "rss-redhat-rhsa",
+      "name": "Red Hat RHSA Security Advisories",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://the-decoder.com/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "feedUrl": "https://security.access.redhat.com/data/meta/v1/rhsa.rss",
+        "_aihot": { "initialBackfillLimit": 12 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
+      "interval_minutes": 240,
+      "tags": ["发行版", "安全修复"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-simon-willison",
-      "name": "Simon Willison",
+      "id": "rss-ubuntu-notices",
+      "name": "Ubuntu Security Notices",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://simonwillison.net/atom/everything/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "feedUrl": "https://ubuntu.com/security/notices/rss.xml",
+        "_aihot": { "initialBackfillLimit": 12 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "个人"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-import-ai",
-      "name": "Import AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://importai.substack.com/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "个人",
-        "周刊"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-latent-space",
-      "name": "Latent Space",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.latent.space/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "个人"
-      ],
+      "interval_minutes": 240,
+      "tags": ["发行版", "安全修复"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     }

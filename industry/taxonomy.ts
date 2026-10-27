@@ -1,155 +1,73 @@
-// 这个行业的分类体系：类别、标签词表、公司（主体）名录，以及防止张冠李戴的身份词典。
-// 模型按这里的词表打标签，主题页（topics.json）按标签归类，筛选栏按类别分组。
-// 换行业时：类别的 key 会出现在网址里（/all?category=…），上线后就不要再改；标签和名录可以随时增减。
+// Linux 内核行业的分类、标签与主体名录。类别 key 会出现在 URL 和公共接口中，上线后不要修改。
 
-/**
- * 网页上的类别（筛选栏、卡片角标、RSS 分类订阅）。key 是网址和接口里的身份，上线后不要改。
- * section 是日报里的分节标题（几个类别可以共用一节，按这里的顺序排）；guide 告诉结构抽取模型这一类收什么、
- * 和相邻类别的边界在哪（总的归类原则写在 prompts/structure.md 里）。
- * commentary 标出评论类（教程、观点）：日报写过的事又有评论类的后续报道，只占一行快讯（报道它的信源够多时除外）。
- * 没归上类的资料在日报里放进第一个 key 为 industry 的类别所在的节（没有就放最后一节）。
- * tagColor 是飞书推送卡片里跟在标题后面的这一类小标签的颜色（飞书 text_tag 的颜色名）。
- * feedLabel 是分类 RSS 标题里的名字（不写就用 label）。公开接口、RSS 和 MCP 里要把一类并进另一类发布，写在站点设置里（site/site.ts 的 PUBLIC_CATEGORIES）。
- */
 export const CATEGORIES = [
-  { key: "ai-models", tagColor: "indigo", label: "模型", feedLabel: "AI 模型", section: "模型发布/更新", guide: "模型本身的发布、版本、权重开放、能力或价格变化，以及既有榜单上的模型成绩。公布一次跑分不是发布新基准，也不是教程。" },
-  { key: "ai-products", tagColor: "turquoise", label: "产品", feedLabel: "AI 产品", section: "产品发布/更新", guide: "可使用的 AI 产品、功能、应用、工具、API、平台和工程组件的发布更新。模型厂商发布的推理框架、算子库、硬件适配组件仍是产品，不能因为厂商名归成模型。" },
-  { key: "industry", tagColor: "orange", label: "行业", feedLabel: "行业动态", section: "行业动态", guide: "已发生的公司经营、融资并购、人事、合作、诉讼、政策、真实安全事故及调查进展。新闻由当事人发帖、带有态度，也不因此变成观点。" },
-  { key: "paper", tagColor: "violet", label: "论文", feedLabel: "论文", section: "论文研究", guide: "以新研究方法、实验设计与发现为核心的论文、技术报告、新基准或研究数据集。系统性红队实验属于研究；既有榜单成绩归模型，真实事故的新闻调查归行业。" },
-  { key: "tip", tagColor: "green", label: "教程", section: "技巧与观点", guide: "读者可以照着使用的方法、提示词、工具用法、工程实践复盘与技术讲解。重点是可复用的做法；单纯发布工具归产品，只有态度和预测而无做法归观点。", commentary: true },
-  { key: "opinion", tagColor: "purple", label: "观点", section: "技巧与观点", guide: "重点是作者的解释、判断、主张、预测、评论或访谈观点。讨论市场不自动归行业，作者是名人不自动归观点。", commentary: true },
+  { key: "security", tagColor: "red", label: "安全与修复", section: "安全与修复", guide: "内核漏洞、已利用风险、重大回归及其修复。只有 CVE 编号而没有影响或修复信息的内容不单独归入此类。" },
+  { key: "release", tagColor: "blue", label: "版本与主线", section: "版本与主线", guide: "主线版本、RC、stable/LTS 发布、合并窗口和 linux-next 的重要进展。发行版自有内核更新归发行版内核。" },
+  { key: "subsystem", tagColor: "indigo", label: "子系统进展", section: "子系统进展", guide: "调度、内存、文件系统、网络、BPF、虚拟化等内核子系统的重要设计与合并进展；单一硬件支持归硬件与驱动。" },
+  { key: "driver", tagColor: "turquoise", label: "硬件与驱动", section: "硬件与驱动", guide: "新硬件支持、设备驱动、架构适配与固件接口变化。以通用子系统机制为核心的内容归子系统进展。" },
+  { key: "performance", tagColor: "green", label: "性能与可靠性", section: "性能与可靠性", guide: "有方法和数据支持的性能、功耗、稳定性、可观测性变化，以及影响广泛的非安全回归。" },
+  { key: "distro", tagColor: "orange", label: "发行版内核", section: "发行版内核", guide: "发行版内核的补丁、版本、支持周期、配置和上游协作，包括企业发行版与云厂商内核。" },
+  { key: "community", tagColor: "purple", label: "社区与治理", section: "社区与治理", guide: "维护者变动、开发流程、行为准则、基金会与重要会议等内核社区治理动态。" },
+  { key: "article", tagColor: "violet", label: "技术解读", section: "技术解读", guide: "有明确方法、证据或可复用知识的内核深度分析、教程与复盘；具体新闻本身应归入对应新闻类别。", commentary: true },
 ] as const satisfies ReadonlyArray<{ key: string; tagColor: string; label: string; feedLabel?: string; section: string; guide: string; commentary?: true }>;
 
-/**
- * 这个行业最受关注的一类发布（AI 行业是新模型）：日报报头的“N 个新模型”、改分类后修订已出的报告都按它数。
- * category 是类别，tag 是标签，两者都对上才算；unit 接在数字后面。
- * 没有这样一类的行业设成 null，报头就不显示这个数。
- */
-export const RELEASE: { category: string; tag: string; unit: string } | null = { category: "ai-models", tag: "模型发布", unit: "个新模型" };
+export const RELEASE: { category: string; tag: string; unit: string } | null = { category: "release", tag: "内核发布", unit: "个内核版本" };
+export const PLAIN_TERMS: readonly string[] = ["linux", "kernel", "cve", "rc", "lts", "stable", "linux-next", "lore", "lkml"];
+export const ITEM_TYPES = ["kernel_release", "security_fix", "subsystem_change", "driver_update", "performance", "distro_kernel", "community_governance", "technical_article"] as const;
 
-/** 周报月报的总述可以直接写、不必在报道里找到出处的行业通用词（小写）。站名会自动算进去。 */
-export const PLAIN_TERMS: readonly string[] = ["ai", "api", "llm", "gpu", "agi", "ceo", "ipo"];
+export const CATEGORY_TAGS = ["安全修复", "内核发布", "子系统变更", "驱动更新", "性能优化", "可靠性", "发行版内核", "社区治理", "技术解读", "其他"] as const;
+export const TOPIC_TAGS = ["调度", "内存管理", "文件系统", "网络", "BPF", "虚拟化", "容器", "实时内核", "电源管理", "可观测性", "Rust for Linux", "x86", "Arm", "RISC-V", "GPU", "存储"] as const;
+export const ENTITY_TAGS = ["Red Hat", "SUSE", "Canonical", "Google", "Intel", "AMD", "NVIDIA", "Arm", "IBM", "Oracle", "Microsoft", "AWS", "Meta", "华为", "阿里巴巴", "腾讯", "Linux Foundation"] as const;
 
-/**
- * 内容理解一步给每篇资料判的“内容类型”（写在 prompts/content-understanding.md 里，改了类型要同步改那份提示词）。
- * 评分提示词（prompts/selection-score.md）按类型给五个维度不同的权重。
- */
-export const ITEM_TYPES = ["model_release", "product_launch", "tool_or_prompt", "research_paper", "industry_event", "opinion_analysis", "tutorial_explainer"] as const;
-
-// ── 标签词表 ────────────────────────────────────────────────────────────────────────────
-
-/** 每篇资料的第一个标签必须是这些“分类标签”之一。 */
-export const CATEGORY_TAGS = [
-  "产品更新", "模型发布", "论文/研究", "开源/仓库", "教程/实践", "现象/趋势", "大佬观点", "评测/基准", "安全/对齐", "行业动态", "政策/监管",
-  "非AI/通用工具", "其他",
-] as const;
-
-/** 可选的主题标签。 */
-export const TOPIC_TAGS = [
-  "Agent", "编码", "推理", "多模态", "语音", "视频", "图像生成", "RAG", "端侧", "数据/训练", "搜索", "部署/工程", "开源生态", "具身智能", "MCP/工具调用",
-] as const;
-
-/** 可选的实体标签（公司、机构、平台）。 */
-export const ENTITY_TAGS = ["OpenAI", "Anthropic", "DeepSeek", "DeepMind", "Google", "Meta", "Microsoft", "xAI", "Hugging Face", "GitHub", "arXiv"] as const;
-
-/** 模型常写的近义词，统一成词表里的写法。 */
 export const TAG_SYNONYMS: Readonly<Record<string, string>> = {
-  "教程/玩法": "教程/实践", "技巧/最佳实践": "教程/实践", "合作/生态": "行业动态", "融资/收购": "行业动态", "公司动态": "行业动态",
-  合作: "行业动态", 生态: "行业动态", 融资: "行业动态", 收购: "行业动态", 投资: "行业动态", 并购: "行业动态",
-  政策: "政策/监管", 监管: "政策/监管", 法规: "政策/监管", 安全: "安全/对齐", 对齐: "安全/对齐",
-  论文: "论文/研究", 研究: "论文/研究", paper: "论文/研究", papers: "论文/研究",
-  "open-source": "开源/仓库", 开源: "开源/仓库", 仓库: "开源/仓库", repo: "开源/仓库",
-  教程: "教程/实践", 玩法: "教程/实践", 指南: "教程/实践", 技巧: "教程/实践", 最佳实践: "教程/实践", 实践: "教程/实践",
-  产品: "产品更新", 更新: "产品更新", 发布: "模型发布", 模型: "模型发布", 趋势: "现象/趋势", 现象: "现象/趋势", 观点: "大佬观点",
-  视频生成: "视频", 非ai: "非AI/通用工具", "non-ai": "非AI/通用工具", 通用工具: "非AI/通用工具", 工程工具: "非AI/通用工具",
-  安全扫描: "非AI/通用工具", devops: "非AI/通用工具", 行业: "行业动态", 动态: "行业动态",
+  漏洞: "安全修复", 安全: "安全修复", 修复: "安全修复", CVE: "安全修复", 版本: "内核发布", 发布: "内核发布", 主线: "内核发布", LTS: "内核发布",
+  子系统: "子系统变更", 驱动: "驱动更新", 硬件支持: "驱动更新", 性能: "性能优化", 回归: "可靠性", 稳定性: "可靠性",
+  发行版: "发行版内核", 社区: "社区治理", 维护者: "社区治理", 教程: "技术解读", 分析: "技术解读", 文章: "技术解读",
 };
 
-// ── 公司与主体 ──────────────────────────────────────────────────────────────────────────
-
-/**
- * 公司主题：id → 显示名、卡片上显示的标签（null 表示只用 entity:<id> 归类）、别名。
- * aliases 给结构抽取模型看；orgNames 是这家公司发消息时开头用的组织名（公司、实验室、团队），
- * 在它自己的主题页上读者知道说的是谁，可以省去；otherNames 是公司的其他称呼（官方账号名、子品牌）。
- * 所有这些名字都用来认出说的是哪家公司，比如把事实的主体对到发布方。
- */
-export const ENTITIES: Record<string, { name: string; displayTag: string | null; aliases: string[]; orgNames?: string[]; otherNames?: string[] }> = {
-  "world-labs": { name: "World Labs", displayTag: null, aliases: ["World Labs"] },
-  "thinking-machines": { name: "Thinking Machines Lab", displayTag: null, aliases: ["Thinking Machines"] },
-  amd: { name: "AMD", displayTag: null, aliases: ["AMD", "Advanced Micro Devices"] },
-  openai: { name: "OpenAI", displayTag: "OpenAI", aliases: ["OpenAI", "ChatGPT", "Sora", "Codex", "GPT"], orgNames: ["OpenAI"], otherNames: ["OpenAI Developers"] },
-  anthropic: { name: "Anthropic", displayTag: "Anthropic", aliases: ["Anthropic", "Claude"], orgNames: ["Anthropic"], otherNames: ["Claude Code"] },
-  google: { name: "Google", displayTag: "Google", aliases: ["Google", "DeepMind", "Gemini", "谷歌"], orgNames: ["Google DeepMind", "Google Research", "Google", "DeepMind", "谷歌"], otherNames: ["Google AI", "Google Labs", "Google Cloud"] },
-  deepseek: { name: "DeepSeek", displayTag: "DeepSeek", aliases: ["DeepSeek", "深度求索"], orgNames: ["DeepSeek", "深度求索"] },
-  qwen: { name: "千问 Qwen", displayTag: null, aliases: ["Qwen", "通义", "阿里"], orgNames: ["通义千问", "通义实验室", "阿里巴巴", "阿里云", "阿里", "Qwen Team", "Qwen", "Alibaba"], otherNames: ["千问", "千问APP", "Alibaba Cloud"] },
-  kimi: { name: "Kimi / 月之暗面", displayTag: null, aliases: ["Kimi", "月之暗面", "Moonshot"], orgNames: ["Moonshot AI", "月之暗面", "Kimi"] },
-  minimax: { name: "MiniMax", displayTag: null, aliases: ["MiniMax", "海螺"], orgNames: ["MiniMax", "稀宇科技"] },
-  zhipu: { name: "智谱 GLM", displayTag: null, aliases: ["智谱", "GLM", "Z.ai"], orgNames: ["智谱AI", "智谱", "Zhipu AI", "Z.ai"], otherNames: ["Zhipu"] },
-  xai: { name: "xAI", displayTag: "xAI", aliases: ["xAI", "Grok"], orgNames: ["SpaceX Super Intelligence", "SpaceXAI", "SpaceXSI", "xAI"], otherNames: ["Grok Bot"] },
-  meta: { name: "Meta", displayTag: "Meta", aliases: ["Meta", "Llama"], orgNames: ["Meta Superintelligence Labs", "Meta AI", "Meta"], otherNames: ["AI at Meta", "Muse"] },
-  microsoft: { name: "Microsoft", displayTag: "Microsoft", aliases: ["Microsoft", "微软", "Copilot"], orgNames: ["Microsoft Research", "Microsoft AI", "Microsoft", "微软"] },
-  nvidia: { name: "NVIDIA", displayTag: null, aliases: ["NVIDIA", "英伟达"], orgNames: ["NVIDIA", "英伟达"] },
-  "hugging-face": { name: "Hugging Face", displayTag: "Hugging Face", aliases: ["Hugging Face"], orgNames: ["Hugging Face", "HuggingFace"] },
-  cursor: { name: "Cursor", displayTag: null, aliases: ["Cursor", "Anysphere"], orgNames: ["Cursor"] },
-  openrouter: { name: "OpenRouter", displayTag: null, aliases: ["OpenRouter"], orgNames: ["OpenRouter"] },
+type Entity = { name: string; displayTag: string | null; aliases: string[]; orgNames?: string[]; otherNames?: string[] };
+export const ENTITIES: Record<string, Entity> = {
+  "red-hat": { name: "Red Hat", displayTag: "Red Hat", aliases: ["Red Hat", "红帽"], orgNames: ["Red Hat", "红帽"] },
+  suse: { name: "SUSE", displayTag: "SUSE", aliases: ["SUSE", "SUSE Labs"], orgNames: ["SUSE", "SUSE Labs"] },
+  canonical: { name: "Canonical", displayTag: "Canonical", aliases: ["Canonical", "Ubuntu"], orgNames: ["Canonical", "Ubuntu Kernel Team"] },
+  google: { name: "Google", displayTag: "Google", aliases: ["Google", "谷歌", "Android"], orgNames: ["Google", "Google Kernel Team", "Android"] },
+  intel: { name: "Intel", displayTag: "Intel", aliases: ["Intel", "英特尔"], orgNames: ["Intel"] },
+  amd: { name: "AMD", displayTag: "AMD", aliases: ["AMD", "Advanced Micro Devices", "超威"], orgNames: ["AMD"] },
+  nvidia: { name: "NVIDIA", displayTag: "NVIDIA", aliases: ["NVIDIA", "英伟达"], orgNames: ["NVIDIA", "英伟达"] },
+  arm: { name: "Arm", displayTag: "Arm", aliases: ["Arm", "ARM"], orgNames: ["Arm", "ARM"] },
+  ibm: { name: "IBM", displayTag: "IBM", aliases: ["IBM", "International Business Machines"], orgNames: ["IBM", "IBM Linux Technology Center"] },
+  oracle: { name: "Oracle", displayTag: "Oracle", aliases: ["Oracle", "甲骨文", "Oracle Linux"], orgNames: ["Oracle", "Oracle Linux"] },
+  microsoft: { name: "Microsoft", displayTag: "Microsoft", aliases: ["Microsoft", "微软", "Azure Linux"], orgNames: ["Microsoft", "Microsoft Linux Systems Group"] },
+  aws: { name: "AWS", displayTag: "AWS", aliases: ["AWS", "Amazon Web Services", "Amazon", "亚马逊云科技"], orgNames: ["AWS", "Amazon Web Services"], otherNames: ["Amazon Linux"] },
+  meta: { name: "Meta", displayTag: "Meta", aliases: ["Meta", "Facebook"], orgNames: ["Meta", "Meta Open Source"] },
+  huawei: { name: "华为", displayTag: "华为", aliases: ["华为", "Huawei"], orgNames: ["华为", "Huawei"] },
+  alibaba: { name: "阿里巴巴", displayTag: "阿里巴巴", aliases: ["阿里巴巴", "阿里", "Alibaba", "Alibaba Cloud", "阿里云"], orgNames: ["阿里巴巴", "阿里云", "Alibaba Cloud"] },
+  tencent: { name: "腾讯", displayTag: "腾讯", aliases: ["腾讯", "Tencent", "腾讯云"], orgNames: ["腾讯", "腾讯云", "Tencent Cloud"] },
+  "linux-foundation": { name: "Linux Foundation", displayTag: "Linux Foundation", aliases: ["Linux Foundation", "Linux 基金会", "LF"], orgNames: ["Linux Foundation", "Linux 基金会"], otherNames: ["CNCF"] },
 };
 
-/**
- * 身份词典：摘要和标题里出现的公司，必须在原文里也出现过，否则退回原标题、丢掉摘要（防止模型张冠李戴）。
- * 行业没有这个问题时可以留空数组。
- */
 export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; patterns: RegExp[] }> = [
-  { id: "openai", name: "OpenAI", patterns: [/openai|chatgpt|\bgpt-?[o\d]|\bsora\b|\bcodex\b/i] },
-  { id: "anthropic", name: "Anthropic", patterns: [/anthropic|\bclaude\b/i, /\b(?:opus|sonnet|haiku)\s*\d+(?:[.\-]\d+)*\b/i, /\bfable\s*\d+(?:[.\-]\d+)*\b|\bmythos\b/i] },
-  { id: "google", name: "Google / Gemini", patterns: [/google|deepmind|\bgemini\b|notebooklm|\bveo\s?\d|\bAlphaFold\b|\bAMIE\b/i] },
-  { id: "deepseek", name: "DeepSeek", patterns: [/deepseek|深度求索/i] },
-  { id: "xai", name: "xAI / Grok", patterns: [/\bxai\b|\bgrok\b/i] },
-  { id: "meta", name: "Meta / Llama", patterns: [/\bMeta\b/, /\bmeta\s?ai\b|\bllama\b/i] },
-  { id: "microsoft", name: "Microsoft / Copilot", patterns: [/microsoft|copilot|微软/i] },
-  { id: "nvidia", name: "NVIDIA", patterns: [/nvidia|英伟达|\bnemotron\b|\bnemo\b|\bblackwell\b|\brubin(?:\s+ultra)?\b|\bcuda\b/i] },
-  { id: "qwen", name: "千问 Qwen", patterns: [/\bqwen|通义|千问/i] },
-  { id: "hugging-face", name: "Hugging Face", patterns: [/hugging\s?face/i] },
-  { id: "cursor", name: "Cursor", patterns: [/\bCursor\b/] },
-  { id: "kimi", name: "Kimi / 月之暗面", patterns: [/\bkimi\b|月之暗面|\bmoonshot\s?ai\b/i] },
-  { id: "openrouter", name: "OpenRouter", patterns: [/openrouter/i] },
-  { id: "minimax", name: "MiniMax", patterns: [/minimax/i] },
-  { id: "zhipu", name: "智谱 GLM", patterns: [/智谱|\bglm-?[4-9]/i] },
-  { id: "hunyuan", name: "腾讯混元", patterns: [/混元|hunyuan/i] },
-  { id: "doubao", name: "字节豆包", patterns: [/豆包|doubao|字节跳动|bytedance/i] },
-  { id: "mistral", name: "Mistral", patterns: [/mistral/i] },
-  { id: "perplexity", name: "Perplexity", patterns: [/\bPerplexity\b/] },
-  { id: "runway", name: "Runway", patterns: [/\brunway\b/i] },
-  { id: "suno", name: "Suno", patterns: [/\bsuno\b/i] },
-  { id: "midjourney", name: "Midjourney", patterns: [/midjourney/i] },
-  { id: "stability-ai", name: "Stability AI", patterns: [/stability\s?ai/i] },
-  { id: "elevenlabs", name: "ElevenLabs", patterns: [/eleven\s?labs/i] },
-  { id: "vllm", name: "vLLM", patterns: [/\bvllm\b/i] },
-  { id: "ollama", name: "Ollama", patterns: [/\bollama\b/i] },
-  { id: "windsurf", name: "Windsurf", patterns: [/windsurf/i] },
-  { id: "devin", name: "Devin", patterns: [/\bdevin\b/i] },
-  { id: "manus", name: "Manus", patterns: [/\bmanus\b/i] },
-  { id: "apple", name: "Apple AI", patterns: [/\bapple\s?(intelligence|silicon|ai)\b|苹果(智能|\s?AI)/i] },
-  { id: "amazon", name: "Amazon / AWS", patterns: [/amazon|\baws\b|亚马逊/i] },
-  { id: "baidu", name: "百度文心", patterns: [/百度|baidu|文心|\bernie\s?bot\b/i] },
+  { id: "red-hat", name: "Red Hat", patterns: [/red\s?hat|红帽/i] }, { id: "suse", name: "SUSE", patterns: [/\bsuse\b/i] },
+  { id: "canonical", name: "Canonical", patterns: [/canonical|\bubuntu\b/i] }, { id: "google", name: "Google", patterns: [/google|谷歌|\bandroid\b/i] },
+  { id: "intel", name: "Intel", patterns: [/intel|英特尔/i] }, { id: "amd", name: "AMD", patterns: [/\bamd\b|advanced micro devices|超威/i] },
+  { id: "nvidia", name: "NVIDIA", patterns: [/nvidia|英伟达/i] }, { id: "arm", name: "Arm", patterns: [/\barm(?:64)?\b/i] },
+  { id: "ibm", name: "IBM", patterns: [/\bibm\b/i] }, { id: "oracle", name: "Oracle", patterns: [/oracle|甲骨文/i] },
+  { id: "microsoft", name: "Microsoft", patterns: [/microsoft|微软|azure linux/i] }, { id: "aws", name: "AWS", patterns: [/amazon web services|\baws\b|amazon linux|亚马逊云科技/i] },
+  { id: "meta", name: "Meta", patterns: [/\bmeta\b|\bfacebook\b/i] }, { id: "huawei", name: "华为", patterns: [/huawei|华为/i] },
+  { id: "alibaba", name: "阿里巴巴", patterns: [/alibaba|阿里巴巴|阿里云/i] }, { id: "tencent", name: "腾讯", patterns: [/tencent|腾讯/i] },
+  { id: "linux-foundation", name: "Linux Foundation", patterns: [/linux foundation|linux 基金会/i] },
 ];
 
-/** 这些域名上的文章，发布方就是对应的公司（托管平台如 GitHub、arXiv 不算）。 */
 export const PUBLISHER_DOMAINS: ReadonlyArray<{ entityId: string; domains: readonly string[] }> = [
-  { entityId: "openai", domains: ["openai.com"] },
-  { entityId: "anthropic", domains: ["anthropic.com", "claude.com"] },
-  { entityId: "google", domains: ["deepmind.google", "ai.google", "blog.google"] },
-  { entityId: "deepseek", domains: ["deepseek.com"] },
-  { entityId: "xai", domains: ["x.ai"] },
-  { entityId: "meta", domains: ["ai.meta.com"] },
-  { entityId: "microsoft", domains: ["microsoft.com"] },
-  { entityId: "nvidia", domains: ["nvidia.com"] },
-  { entityId: "qwen", domains: ["qwen.ai"] },
-  { entityId: "cursor", domains: ["cursor.com"] },
-  { entityId: "openrouter", domains: ["openrouter.ai"] },
+  { entityId: "red-hat", domains: ["redhat.com"] }, { entityId: "suse", domains: ["suse.com"] },
+  { entityId: "canonical", domains: ["canonical.com", "ubuntu.com"] }, { entityId: "google", domains: ["google.com", "android.com"] },
+  { entityId: "intel", domains: ["intel.com"] }, { entityId: "amd", domains: ["amd.com"] }, { entityId: "nvidia", domains: ["nvidia.com"] },
+  { entityId: "arm", domains: ["arm.com"] }, { entityId: "ibm", domains: ["ibm.com"] }, { entityId: "oracle", domains: ["oracle.com"] },
+  { entityId: "microsoft", domains: ["microsoft.com"] }, { entityId: "aws", domains: ["aws.amazon.com"] }, { entityId: "meta", domains: ["engineering.fb.com"] },
+  { entityId: "huawei", domains: ["huawei.com"] }, { entityId: "alibaba", domains: ["alibabacloud.com"] }, { entityId: "tencent", domains: ["tencent.com"] },
+  { entityId: "linux-foundation", domains: ["linuxfoundation.org"] },
 ];
 
-/** 原文里的这些写法也算提到了对应公司。 */
 export const IDENTITY_CONTEXT_ALIASES: ReadonlyArray<{ entityId: string; pattern: RegExp }> = [
-  { entityId: "meta", pattern: /@AIatMeta\b/i },
-  { entityId: "zhipu", pattern: /\bZhipu(?:\s+AI\b|['’]s\b)/i },
+  { entityId: "aws", pattern: /Amazon Linux/i }, { entityId: "canonical", pattern: /Ubuntu Kernel Team/i }, { entityId: "linux-foundation", pattern: /\bLF\b/ },
 ];
