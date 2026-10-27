@@ -194,6 +194,36 @@
       "tags": ["官方", "安全修复"],
       "site_fulltext": false,
       "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-redhat-rhsa",
+      "name": "Red Hat RHSA Security Advisories",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://security.access.redhat.com/data/meta/v1/rhsa.rss",
+        "_aihot": { "initialBackfillLimit": 12 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": ["发行版", "安全修复"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-ubuntu-notices",
+      "name": "Ubuntu Security Notices",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://ubuntu.com/security/notices/rss.xml",
+        "_aihot": { "initialBackfillLimit": 12 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": ["发行版", "安全修复"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     }
   ]
 }

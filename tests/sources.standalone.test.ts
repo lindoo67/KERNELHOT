@@ -51,8 +51,8 @@ test("distro, community and technical article sources keep their editorial bound
   const file = JSON.parse(readFileSync(new URL("../industry/sources.json", import.meta.url), "utf8")) as {
     sources: Array<{ id: string; kind: string; tier: string; participation_mode: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
   };
-  assert.equal(file.sources.length, 19);
-  assert.equal(new Set(file.sources.map((item) => item.id)).size, 19);
+  assert.equal(file.sources.length, 21);
+  assert.equal(new Set(file.sources.map((item) => item.id)).size, 21);
   assert.ok(file.sources.every((item) => item.participation_mode === "editorial"));
   assert.ok(file.sources.every((item) => item.site_fulltext === false && item.syndicate_fulltext === false));
   const byId = new Map(file.sources.map((item) => [item.id, item]));
@@ -373,4 +373,33 @@ test("the security and release slice keeps its verified official endpoints", () 
     assert.equal(item.syndicate_fulltext, false);
     assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
   }
+});
+
+test("distro security RSS feeds (Red Hat RHSA, Ubuntu Notices) have safe config", () => {
+  const file = JSON.parse(readFileSync(new URL("../industry/sources.json", import.meta.url), "utf8")) as {
+    sources: Array<{ id: string; kind: string; tier: string; participation_mode: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
+  };
+  const distroIds = new Set(["rss-redhat-rhsa", "rss-ubuntu-notices"]);
+  const sources = file.sources.filter((item) => distroIds.has(item.id));
+  assert.equal(sources.length, 2, "both distro feeds present");
+  for (const item of sources) {
+    assert.equal(item.kind, "rss", item.id);
+    assert.equal(item.tier, "T1", item.id);
+    assert.equal(item.participation_mode, "editorial", item.id);
+    assert.equal(item.site_fulltext, false, item.id);
+    assert.equal(item.syndicate_fulltext, false, item.id);
+    assert.ok(Object.hasOwn(item.config, "feedUrl"), item.id);
+    assert.ok(String(item.config.feedUrl).includes(".rss") || String(item.config.feedUrl).includes(".xml"), item.id);
+    assert.deepEqual(unsupportedConfig(item.kind, item.config), [], item.id);
+  }
+});
+
+test("public API summary references Linux kernel, not AI", () => {
+  const spec = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../site/public/openapi-v1.json"), "utf8")) as {
+    paths: Record<string, { get: { summary: string } }>;
+  };
+  const listPath = "/api/v1/items";
+  assert.ok(Object.hasOwn(spec.paths, listPath), listPath + " exists");
+  assert.ok(/Linux kernel/i.test(spec.paths[listPath].get.summary), `summary should mention Linux kernel, got: ${spec.paths[listPath].get.summary}`);
+  assert.ok(!/AI/i.test(spec.paths[listPath].get.summary), `summary should not mention AI, got: ${spec.paths[listPath].get.summary}`);
 });
