@@ -111,9 +111,9 @@ The same thing happens once: the official site posts it, ten outlets repeat it, 
 
 To create your own independent site, click [Use this template](https://github.com/KKKKhazix/AIHOT/generate) and clone the repository it creates. To keep merging upstream updates or to contribute, fork it instead. The commands below are for trying it out directly.
 
-You need [Docker](https://docs.docker.com/get-started/get-docker/), [Node.js 24](https://nodejs.org/en/download) (to run `init-env`, which generates the configuration), and an API key for any OpenAI-compatible model API (DeepSeek, Qwen, Zhipu GLM and so on).
+You need [Docker](https://docs.docker.com/get-started/get-docker/), [Node.js 24](https://nodejs.org/en/download) (to run `init-env`, which generates the configuration), and an API key for an OpenAI-compatible or Anthropic Messages model API.
 
-`init-env` configures DeepSeek by default. For another provider, change `LLM_BASE_URL`, `LLM_MODEL` and `LLM_EXTRA_JSON` in `.env`, following the examples in `.env.example`. With a reasoning model (one that thinks before answering), also set `LLM_REASONING_TOKENS` to leave output room for the reasoning.
+`init-env` configures DeepSeek by default. For another OpenAI-compatible provider, change `LLM_BASE_URL`, `LLM_MODEL` and `LLM_EXTRA_JSON` in `.env`, following the examples in `.env.example`; for the native Anthropic Messages API, also set `LLM_API_STYLE=anthropic`. With a reasoning model (one that thinks before answering), set `LLM_REASONING_TOKENS` to leave output room for the reasoning.
 
 ```bash
 git clone https://github.com/KKKKhazix/AIHOT.git myhot

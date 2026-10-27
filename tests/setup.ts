@@ -22,6 +22,9 @@ process.env.LOG_LEVEL ??= "error";
 // Paid providers are local stubs in these tests: calls and collection may run (the valves default off).
 process.env.MODEL_CALLS_ENABLED ??= "true";
 process.env.COLLECT_ENABLED ??= "true";
+// A developer's default-model protocol must not change the fake providers used by invariant tests.
+process.env.LLM_API_STYLE = "openai";
+process.env.LLM_CHAT_PATH = "/chat/completions";
 // The tests were written against named model presets, one per step (each provider is pointed at a
 // local stub by the test that needs it). A step the site leaves on the `default` model gets its
 // preset here; tests/default-model.test.ts covers the default.
@@ -50,14 +53,14 @@ export function pointModels(url: string, models = ["qwen3.7-flash", "glm-5.3-fla
  * A local HTTP stub standing in for a paid provider; `answer` builds every response from the request
  * (it may wait, to hold a request open while a test changes something).
  */
-export async function stub(answer: (hit: number, req: { url: string; body: string }) => unknown) {
+export async function stub(answer: (hit: number, req: { url: string; body: string; headers: http.IncomingHttpHeaders }) => unknown) {
   let hits = 0;
   const server = http.createServer((req, res) => {
     const chunks: Buffer[] = [];
     req.on("data", (c: Buffer) => chunks.push(c));
     req.on("end", async () => {
       hits += 1;
-      const out = await answer(hits, { url: req.url ?? "/", body: Buffer.concat(chunks).toString("utf8") });
+      const out = await answer(hits, { url: req.url ?? "/", body: Buffer.concat(chunks).toString("utf8"), headers: req.headers });
       const reply = out instanceof Reply ? out : { status: 200, json: out };
       res.writeHead(reply.status, { "content-type": "application/json" });
       res.end(JSON.stringify(reply.json));

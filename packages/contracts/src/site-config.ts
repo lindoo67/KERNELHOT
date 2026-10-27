@@ -1,9 +1,15 @@
 // Configuration fields the engine reads from each edition's own site package.
+export type ModelApiStyle = "openai" | "anthropic";
+
 export interface ModelPreset {
   service: string;
   model: string;
   baseUrlEnv: string;
   apiKeyEnv: string;
+  /** Wire protocol and default endpoint path. Omitted presets use OpenAI chat completions. */
+  apiStyle?: ModelApiStyle;
+  /** Endpoint appended to the base URL when a compatible relay exposes a non-standard path. */
+  chatPath?: string;
   /** Extra request fields, e.g. switching reasoning off for short structured tasks. */
   extra?: Record<string, unknown>;
   /** Output tokens added to every call's own limit for a reasoning model, which reasons before it answers. */

@@ -3,7 +3,7 @@
 // site, an environment variable or the admin's model page picks one of the site's named presets
 // (site/models.ts).
 import type { z } from "zod";
-import type { ModelPreset } from "@aihot/contracts/site-config";
+import type { ModelApiStyle, ModelPreset } from "@aihot/contracts/site-config";
 import { PRESETS } from "@aihot/site/models";
 import { config, credential } from "../config.ts";
 import { sha256 } from "../lib/ids.ts";
@@ -32,6 +32,18 @@ function reasoningTokensFromEnv(value: string | undefined): number | undefined {
   return Number(value);
 }
 
+function apiStyleFromEnv(value: string | undefined, chatPath: string | undefined): ModelApiStyle {
+  if (!value) return chatPath?.replace(/\/+$/, "").endsWith("/messages") ? "anthropic" : "openai";
+  if (value === "openai" || value === "anthropic") return value;
+  throw new Error("LLM_API_STYLE must be openai or anthropic");
+}
+
+function normalizedChatPath(value: string | undefined, apiStyle: ModelApiStyle): string {
+  const path = value?.trim() || (apiStyle === "anthropic" ? "/v1/messages" : "/chat/completions");
+  if (!path.startsWith("/") || path.startsWith("//")) throw new Error("A model chatPath must start with one /");
+  return path;
+}
+
 export const MODELS: Record<string, ModelSpec> = {
   // Read from the environment at call time.
   default: {
@@ -41,12 +53,25 @@ export const MODELS: Record<string, ModelSpec> = {
     get reasoningTokens() { return reasoningTokensFromEnv(process.env.LLM_REASONING_TOKENS); },
     get jsonMode() { return process.env.LLM_JSON_MODE !== "false"; },
     get vision() { return process.env.LLM_VISION === "true"; },
+    get apiStyle() { return apiStyleFromEnv(process.env.LLM_API_STYLE, process.env.LLM_CHAT_PATH); },
+    get chatPath() { return process.env.LLM_CHAT_PATH || undefined; },
   },
   // The pack's named presets, each with its own address and key.
   ...Object.fromEntries(Object.entries(PRESETS).map(([key, preset]) => [key, { key, ...preset }])),
 };
 
 export type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+
+function anthropicContent(user: string | ContentPart[]): string | Array<Record<string, unknown>> {
+  if (typeof user === "string") return user;
+  return user.map((part) => {
+    if (part.type === "text") return part;
+    const data = /^data:([^;,]+);base64,([\s\S]+)$/.exec(part.image_url.url);
+    return data
+      ? { type: "image", source: { type: "base64", media_type: data[1], data: data[2] } }
+      : { type: "image", source: { type: "url", url: part.image_url.url } };
+  });
+}
 
 export interface ChatJsonOptions<S extends z.ZodType> {
   model: string;
@@ -119,9 +144,16 @@ function requestFor<S extends z.ZodType>(opts: ChatJsonOptions<S>, spec: ModelSp
   const temperature = opts.temperature ?? 0.2;
   const maxTokens = Math.max(opts.maxTokens ?? 1500, 512) + (spec.reasoningTokens ?? 0);
   const userText = typeof opts.user === "string" ? opts.user : JSON.stringify(opts.user);
+  const apiStyle = spec.apiStyle ?? "openai";
+  const chatPath = normalizedChatPath(spec.chatPath, apiStyle);
   const request: ReceiptRequest = {
     service: spec.service, model: spec.model, purpose: opts.purpose, subject: opts.subject,
-    identity: { model: spec.model, promptVersion: opts.promptVersion, system: sha256(opts.system), user: sha256(userText), temperature, maxTokens, extra: spec.extra ?? null },
+    identity: {
+      model: spec.model,
+      // Preserve the durable identity of existing OpenAI receipts across this upgrade.
+      ...(apiStyle !== "openai" || chatPath !== "/chat/completions" ? { apiStyle, chatPath } : {}),
+      promptVersion: opts.promptVersion, system: sha256(opts.system), user: sha256(userText), temperature, maxTokens, extra: spec.extra ?? null,
+    },
     requestSummary: { promptVersion: opts.promptVersion, systemHash: sha256(opts.system), userHash: sha256(userText), userChars: userText.length, temperature, maxTokens },
     attemptTag: opts.attemptTag,
   };
@@ -171,7 +203,16 @@ async function chatOnce<S extends z.ZodType>(opts: ChatJsonOptions<S>, circuit =
   const { request, temperature, maxTokens, userText } = requestFor(opts, spec);
   const timeoutMs = opts.timeoutMs ?? (circuit ? FAILOVER_TIMEOUT_MS : TIMEOUT_MS);
   let permit: CircuitPermit;
-  const body: Record<string, unknown> = {
+  const apiStyle = spec.apiStyle ?? "openai";
+  const chatPath = normalizedChatPath(spec.chatPath, apiStyle);
+  const body: Record<string, unknown> = apiStyle === "anthropic" ? {
+    model: spec.model,
+    ...(opts.system ? { system: opts.system } : {}),
+    messages: [{ role: "user", content: anthropicContent(opts.user) }],
+    temperature,
+    max_tokens: maxTokens,
+    ...(spec.extra ?? {}),
+  } : {
     model: spec.model,
     messages: [
       // A prompt given as one user message (the title/summary prompts) has no system message.
@@ -192,9 +233,13 @@ async function chatOnce<S extends z.ZodType>(opts: ChatJsonOptions<S>, circuit =
       let res: Response;
       let text: string;
       try {
-        res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
+        res = await fetch(`${baseUrl.replace(/\/$/, "")}${chatPath}`, {
           method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${apiKey}`,
+            ...(apiStyle === "anthropic" ? { "x-api-key": apiKey, "anthropic-version": "2023-06-01" } : {}),
+          },
           body: JSON.stringify(body),
           signal: AbortSignal.timeout(timeoutMs),
         });
@@ -214,10 +259,26 @@ async function chatOnce<S extends z.ZodType>(opts: ChatJsonOptions<S>, circuit =
       } catch {
         json = { unparsable: text.slice(0, 20000) };
       }
+      // Normalize Anthropic-style responses ({type:"message", content:[...text...]}) to OpenAI format
+      // ({choices:[{message:{content:...}}]}) so the rest of the code works unchanged.
+      if (apiStyle === "anthropic" && json.type === "message" && Array.isArray(json.content)) {
+        const textParts = (json.content as Array<{type?: string; text?: string}>).filter(c => c.type === "text").map(c => c.text).join("\n");
+        const stopReason = json.stop_reason === "max_tokens" || json.stop_reason === "model_context_window_exceeded" ? "length"
+          : json.stop_reason === "end_turn" ? "stop" : json.stop_reason;
+        json = {
+          id: json.id,
+          choices: [{
+            index: 0,
+            message: { role: "assistant", content: textParts },
+            finish_reason: stopReason,
+          }],
+          usage: json.usage,
+        };
+      }
       const usage = (json.usage as Record<string, unknown> | undefined) ?? null;
       return {
         response: { ...json, _latencyMs: Math.round(performance.now() - started) },
-        requestId: (json.id as string | undefined) ?? res.headers.get("x-request-id"),
+        requestId: (json.id as string | undefined) ?? res.headers.get("request-id") ?? res.headers.get("x-request-id"),
         usage,
         cost: null,
       };

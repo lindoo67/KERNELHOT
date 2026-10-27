@@ -5,7 +5,7 @@
 import type { ModelPreset } from "@aihot/contracts/site-config";
 export type { ModelPreset } from "@aihot/contracts/site-config";
 
-/** 具名的模型示例（每个要配自己的密钥）。用不上可以删掉。 */
+/** 具名的模型示例（每个要配自己的密钥）。原生 Anthropic 模型加 apiStyle: "anthropic"；用不上可以删掉。 */
 export const PRESETS: Record<string, ModelPreset> = {
   // GLM 5.3 Flash always reasons; the lowest effort keeps short structured tasks fast.
   "glm-5.3-flash": {
