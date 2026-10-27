@@ -403,3 +403,12 @@ test("public API summary references Linux kernel, not AI", () => {
   assert.ok(/Linux kernel/i.test(spec.paths[listPath].get.summary), `summary should mention Linux kernel, got: ${spec.paths[listPath].get.summary}`);
   assert.ok(!/AI/i.test(spec.paths[listPath].get.summary), `summary should not mention AI, got: ${spec.paths[listPath].get.summary}`);
 });
+
+test("summarize-long-post prompt is Linux-kernel focused with quoted-post guidance", () => {
+  const prompt = readFileSync(new URL("../industry/prompts/summarize-long-post.md", import.meta.url), "utf8");
+  assert.match(prompt, /Linux 内核领域资深编辑/, "prompt should use Linux kernel editor role");
+  assert.doesNotMatch(prompt, /AI 行业资深编辑/, "prompt should not contain AI industry editor role");
+  assert.ok(/关键信息.*整合|整合.*关键信息/.test(prompt), "prompt should integrate key context from quoted posts");
+  assert.match(prompt, /不要逐句复述.*照搬/, "prompt should not reproduce quoted content line-by-line");
+  assert.doesNotMatch(prompt, /模型名.*参数规模.*速度倍数.*价格/, "prompt should not contain old AI model/price phrase");
+});
