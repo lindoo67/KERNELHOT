@@ -51,8 +51,8 @@ test("distro, community and technical article sources keep their editorial bound
   const file = JSON.parse(readFileSync(new URL("../industry/sources.json", import.meta.url), "utf8")) as {
     sources: Array<{ id: string; kind: string; tier: string; participation_mode: string; config: Record<string, unknown>; site_fulltext: boolean; syndicate_fulltext: boolean }>;
   };
-  assert.equal(file.sources.length, 21);
-  assert.equal(new Set(file.sources.map((item) => item.id)).size, 21);
+  assert.equal(file.sources.length, 26);
+  assert.equal(new Set(file.sources.map((item) => item.id)).size, 26);
   assert.ok(file.sources.every((item) => item.participation_mode === "editorial"));
   assert.ok(file.sources.every((item) => item.site_fulltext === false && item.syndicate_fulltext === false));
   const byId = new Map(file.sources.map((item) => [item.id, item]));
@@ -60,6 +60,11 @@ test("distro, community and technical article sources keep their editorial bound
     ["rss-kernelnewbies-releases", "T1_5"],
     ["rss-linux-plumbers", "T1_5"],
     ["web-kernel-summit-2026", "T1_5"],
+    ["rss-lore-regressions", "T1"],
+    ["rss-lore-linux-next", "T1"],
+    ["rss-lore-rust-for-linux", "T1"],
+    ["rss-people-kernel-org", "T2"],
+    ["rss-bootlin", "T2"],
     ["rss-lwn", "T2"],
     ["rss-phoronix", "T2"],
   ] as const;
@@ -75,6 +80,11 @@ test("distro, community and technical article sources keep their editorial bound
   assert.equal(byId.get("rss-lwn")!.config.summaryIsBody, true);
   assert.equal(byId.get("rss-lwn")!.config.fetchPublicContent, false, "LWN never requests paid article text");
   assert.equal(byId.get("rss-phoronix")!.config.fetchPublicContent, false, "Phoronix stays feed-only");
+  assert.equal(byId.get("rss-lore-regressions")!.config.feedUrl, "https://lore.kernel.org/regressions/new.atom");
+  assert.equal(byId.get("rss-lore-linux-next")!.config.feedUrl, "https://lore.kernel.org/linux-next/new.atom");
+  assert.equal(byId.get("rss-lore-rust-for-linux")!.config.feedUrl, "https://lore.kernel.org/rust-for-linux/new.atom");
+  assert.equal(byId.get("rss-people-kernel-org")!.config.feedUrl, "https://people.kernel.org/read/feed/");
+  assert.equal(byId.get("rss-bootlin")!.config.feedUrl, "https://bootlin.com/feed/");
 
   assert.match(PREFILTER_SYSTEM, /泛 Linux[^。]*教程[^。]*BLOCK|BLOCK[^。]*泛 Linux[^。]*教程/);
   assert.match(PREFILTER_SYSTEM, /社区八卦/);

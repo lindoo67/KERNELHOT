@@ -70,6 +70,27 @@
       "site_fulltext": false, "syndicate_fulltext": false
     },
     {
+      "id": "rss-lore-regressions", "name": "Lore · Linux regressions", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/regressions/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 60,
+      "tags": ["官方", "可靠性"],
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-linux-next", "name": "Lore · linux-next", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/linux-next/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 120,
+      "tags": ["官方", "子系统变更"],
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lore-rust-for-linux", "name": "Lore · Rust for Linux", "kind": "rss",
+      "config": { "feedUrl": "https://lore.kernel.org/rust-for-linux/new.atom", "atomUpdatedIsPublished": true, "_aihot": { "initialBackfillLimit": 8 } },
+      "tier": "T1", "participation_mode": "editorial", "interval_minutes": 120,
+      "tags": ["官方", "Rust for Linux"],
+      "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
       "id": "rss-lwn", "name": "LWN.net", "kind": "rss",
       "config": { "feedUrl": "https://lwn.net/headlines/rss", "summaryIsBody": true, "fetchPublicContent": false, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T2", "participation_mode": "editorial", "interval_minutes": 120,
@@ -80,6 +101,38 @@
       "config": { "feedUrl": "https://www.phoronix.com/rss.php", "fetchPublicContent": false, "_aihot": { "initialBackfillLimit": 8 } },
       "tier": "T2", "participation_mode": "editorial", "interval_minutes": 120,
       "site_fulltext": false, "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-people-kernel-org",
+      "name": "people.kernel.org",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://people.kernel.org/read/feed/",
+        "fetchPublicContent": true,
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": ["技术解读"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bootlin",
+      "name": "Bootlin 技术博客",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://bootlin.com/feed/",
+        "fetchPublicContent": true,
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": ["技术解读"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     },
     {
       "id": "rss-kernel-org-kdist",
